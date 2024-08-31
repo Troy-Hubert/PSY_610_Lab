@@ -1,0 +1,194 @@
+---
+title: "Lab 2 t test"
+output: html_document
+date: "2024-08-29"
+---
+
+These are the websites I used to compile information for this week:
+You can use this website a reference for t tests:  
+- https://www.geeksforgeeks.org/t-test-approach-in-r-programming/
+visualizing statistics (i.e., ggstatplot):
+- https://indrajeetpatil.github.io/ggstatsplot/
+ruporting stats:
+- https://easystats.github.io/report/
+A reference of most stats and their respective functions:
+- https://indrajeetpatil.github.io/statsExpressions/articles/stats_details.html
+
+# T tests
+This Markdown will show you code to analyze and report t tests. t tests are used
+to compare difereneces between the means. There are 3 t tests we will cover in this class:
+
+1. One sample t tests - comparing the mean a sample to the population mean.
+2. Two sample t test - comparing two different samples means.
+3. Paired sample t test - comparing group means of people within the same sample.
+
+
+Today We will be focusing on one sample t test, binomial tests (non-perametic t tests), and chi square tests. 
+
+## Set up
+Lets install and load our packages. The fancy code below checks if you have 
+installed a package, and if you haven't, it installs it for you.
+```{r}
+if(!require(tidyverse)) {install.packages("tidyverse")}
+library(tidyverse) # for data stuff
+if(!require(haven)) {install.packages("haven")}
+library(haven) # for importing spss files
+if(!require(ggplot2)) {install.packages("ggplot2")}
+library(ggplot2) # for fancy t test reporting
+if(!require(ggstatsplot)) {install.packages("ggstatsplot")}
+library(ggstatsplot) # for fancy t test reporting
+if(!require(report)) {install.packages("report")}
+library(ggstatsplot) # for fancy t test reporting
+```
+
+## Import our data
+```{r}
+df <- read_sav(file.choose())
+```
+
+# prep our data
+```{r}
+df$male = as.factor(df$male)
+df$group = as.factor(df$group)
+df
+```
+
+## Single Sample t tests
+Using Base R t tests: Lets see if our sample is more depressed than the population:
+```{r}
+# mu is the test statistic mean we are comparing our sample to 
+t.test(df$depression, mu = 25)
+```
+
+Using the {report} package will tell you if your t-test is significant!
+```{r}
+library(report)
+report(t.test(df$depression, mu = 25))
+```
+
+The {ggstatplot} will run the t test for you, show you a histogram of 
+your distribution, and show you the mean of your sample, and normal distribution.
+```{r}
+library('ggstatsplot')
+gghistostats(
+  data       = df, # Put your data here
+  x          = depression,  # put your x variable that you are running the test here
+  title      = "Scores of Depression in College Age Students", # change the title
+  test.value = 25, # This is the test statistic
+  #Don't worry about the stuff below!
+  binwidth   = 1,
+  effsize.type = "d", # Effect size (i.e., how significant it is)
+  normal.curve = TRUE, # adding a normal curve to it
+  normal.curve.args = list(color = "darkred",linewidth = 1),
+  bf.message = FALSE
+)
+```
+
+## Binomial Test - Nonparametic tests
+
+First lets filter out people like we did in spss. And figure out how many people are below 26.
+```{r}
+#subset
+df_small<- subset(df, id < 21)
+df_small
+
+#call the variable to see how many people are below 25
+hist(df_small$depression)
+
+# OR create a variable and make a table
+df_small$success<- ifelse(df_small$depression > 25,"yes","no") 
+table(df_small$success)
+
+length(df_small$success)
+```
+You can see out of 2 people have a score of 25 or below.
+
+Running the Binomial test
+```{r}
+# template for this is binom.test(number of yeses, total amount)
+binom.test(18,20)
+```
+Just like SPSS, Its significant! We reject the null hypothesis that we the groups are split 50/50.
+
+Writing it up: 
+Based on a one-sided binomial test the observed values (N = 20, K = 18) give significant support to the assumption that more than 50% of the sample is depressed, p = <.001. 
+
+## Chi Square - single variable
+
+### Two group Chi square
+Let’s also say that the gender makeup of college students is 57% female
+Does our sample have an equal gender breakdown as the larger population?
+```{r}
+table(df$male)
+plot(df$male)
+#take the output from the frequency table and assign it to a variable male
+male<-c(335, 106)
+#run the chi square with the 57% female and 43% male expectation
+chisq.test(male, p = c(.57, .43))
+#use report to tell us what this means!
+report(chisq.test(male, p = c(.57, .43)))
+```
+
+### three group Chi Square 
+
+We’re gonna use the variable ‘group’
+Let’s say that group should be a variable where the distribution is 20/20/60
+```{r}
+#get the frequencies
+table(df$group)
+plot(df$group)
+#assign to group variable
+group<-c(28, 62, 351)
+#run the test
+chisq.test(group, p = c(.2, .2, .6))
+#report the test!
+report(chisq.test(group, p = c(.2, .2, .6)))
+```
+Now, you need to conduct three tests between 2 groups
+:
+Group 1 v. Group 2 (proportion 50/50)
+Group 1 v. Group 3 (proportion 1:3, 25/75)
+Group 2 v. Group 3 (proportion 1:3, 25/75)
+```{r}
+#We don't need to filter our variables, just make new Group variables
+
+#1. Start with frequencies 
+table(df$group)
+
+#2. Assign values to group variables, 
+groups_1_2 <- c(28,62)
+groups_1_3 <- c(28,351)
+groups_2_3 <- c(62,531)
+
+
+```
+
+3. run the tests seperaately with proportions above (what we expect)
+Between Groups 1 and 2
+```{r}
+
+    chisq.test(groups_1_2, p = c(.5, .5))
+    report(chisq.test(groups_1_2, p = c(.5, .5)))
+```
+
+Between groups 1 and 3
+```{r}
+    chisq.test(groups_1_3, p = c(.25, .75))
+    report(chisq.test(groups_1_3, p = c(.25, .75)))
+```
+
+between groups 2 and 3 
+```{r}
+    chisq.test(groups_2_3, p = c(.25, .75))
+    report(chisq.test(groups_2_3, p = c(.25, .75)))
+```
+
+WE can see that there are significant differences in the proportions of students
+in groups compared to what we would expect!
+
+Writing it up:
+The Chi-squared test for given probabilities / goodness of fit of groups to
+a distribution of [n=148.25, n=444.75] suggests that the effect is
+statistically significant X2 (1, = 66.91, p < .001.
+
+

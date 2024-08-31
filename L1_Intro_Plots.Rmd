@@ -1,0 +1,316 @@
+---
+title: "L1_Intro_Plots"
+output: html_document
+date: "2024-08-25"
+---
+
+#R Code book!
+
+This is an R markdown file. This file allows you to run code in Chunks, and see the output directly on in your Rmarkdown file. This is beneficial as you don't need to look at an output file. It's just right below the "chunk". 
+
+A quick note before jumping into it, there is a large amount of literature on this program that can be easily found by a Google search. However, not all of this information will be applicable to Psychology or Statistics, per se, and occasionally it is hard to adapt commands or code from other disciplines into the Social Sciences. As such, you should do your best to understand the commands, as this is your best chance at 'translating' code from one discipline to another. 
+Additionally, R has a built in help section over there to your bottom right. You can just search the name of the command (e.g. lm, corr, plot) and the program will give you the information you need. It may take some time to understand the arguments and things the help section is trying to tell you, however once you learn the language you can almost understand any command. Moreover, you can get some quick help while typing your code by just typing in the command and leaving it for a second. You can also just type ?functionname() (i.e., ?t.test() ) and it will do it for you. You can also do ??functionname() and it will show you all of the packages with that function. More on that later.
+
+## Settings Before we start
+
+First we want to set our working directory. We do that in the panel on the bottom right. Click "Files", and create a new folder where you want to save your code. You can save your SPSS and R stuff here. Now click "More" > "Set as working directory". Now when we call things it will be from this folder (i.e., directory).
+
+Next, we will want to change some settings to make coding easier for us. Select "Tools" > "Global Settings". Here are some things for you to change:
+1. General > default working directory (when not in a project). Choose that directory that we made earlier. this means that everything will automatically save to this file!
+2. Code > Display > Use Rainbow Parentheses. You will see later, This allows us to see when we open and close brackets (). 
+3. Appearance. You can briefly click through and choose something that isn’t white. I hate light mode, so you can see I’ve chosen something dark. 
+4. Press “Apply” on the bottom right. Then press okay / exit out of the window.
+
+## Packages
+
+Packages are like apps that you manually install, then call again to use. We install packages using the install.package() function and you call packages in the future with the library() function. Think of this as a phone app - first you need to download it, but then you also need to open it. The package may stop running if you close the program, but you can set them to be always open.
+
+Installing a package
+install.packages("name")
+
+Running the package
+library(name)
+
+Press the green arrow to run this chunk of code. You are installing things that we will use later. Don't worry about it for now. Before you start either delete the "#" in front of the first 4 lines of code or press control/command + Shift + C to allow these to run.
+```{r setup, include=FALSE}
+# install.packages('dplyr')
+# install.packages('moments')
+# install.packages('psych')
+# install.packages('summarytools')
+
+
+library(dplyr) #use this for data management
+library(readxl) # you need this to import excel files
+library(psych) # discriptive statistics. 
+library(summarytools) # descriptive statistics 
+```
+
+Lets run some code now! You can run the whole chunk by pressing the green arrow, you can highlight code and press the run button on the top of this window, or you can highlight code and press command + return on mac or control and enter on windows. 
+```{r}
+# this is a comment - it means that R won't run this 
+# using comments lets me say things about code
+
+print("Hello World!")  # this code prints the phrase hello world
+```
+
+The output above (i.e., [1] "Hello World") is R spitting out the phrase hello world. Your code will output like this for other things like this:
+```{r}
+mean(c(1,2,3,4))
+  # the c() creates a vector, don't worry about that for now.
+```
+
+ ------------------------------------------------
+
+# Import data
+Import the dataset from lab 1
+
+Replace the code for your download into this area below. IT should look something like this:
+```{r}
+#df <- read_excel("C:/Users/troyh/OneDrive - University of Kentucky/TA/610 - Statistivcs/Lab 1/Lab 1 dataset.xlsx")
+
+df <- read_excel("Lab 1 dataset.xlsx")
+
+#Replace your file path here for future reference:
+
+
+#The code above imports the file into R and assigns it a variable name Lab_1_dataset. When you call Lab_1_dataset it will show you it.
+df
+```
+To see how many rows and columns in the data set we will use the dim() function. It stands for dimensions.
+```{r}
+dim(df)
+```
+We have 36 rows (i.e., people or observations) and 9 columns (i.e., variables)
+
+
+Now we imported it and can now see it. You can also use the View() function to see it.
+```{r}
+View(df)
+```
+
+
+# Coding basics
+## Coding basics
+
+Unlike SPSS we have to do a bit more manual coding. Let me show you some basics here:
+
+1. We will have to call variable names manually. We do this using the $ sign. 
+```{r}
+df$ID
+```
+
+2. You will use an equal sign to assign values to a variable just like SPSS. 
+However two equal signs "==" means that something is equal to something. The 
+! sign means not, so != means not equal.
+```{r}
+#assigning values to a variable 
+x = 2000
+y = 200
+#calling the variable
+x 
+y
+# evaluating if one equals the other using "=="
+x == y
+```
+Sense we had two different outputs. You can see how they come out in R seperately with x first, y second, and y == x last. 
+
+You can assign more than one number using the c() function
+```{r}
+z = c(1,2,3,4,5)
+z
+```
+
+3. String are words that we can assign to variables. 
+This can be useful as you can assign string to factors like male / female instead of 0 and 1
+```{r}
+Im_sad = "Troy is making me do coding, why me?"
+Im_sad
+```
+
+4. Calling column/columns within a data frame. Notation for space in a data from is used with the notion of df[row,column]
+```{r}
+df[1,] # this calls all of a values in the first row
+df[,3] # this calls all of a values in the third column
+df[2,4] # this calls a specific value in the 2nd row and the 3rd column
+```
+
+5. factor and continuous variables
+In R categorical variables are called factors, and continuous variables are often called num (numbers), integers, or doubles. lets look at our variable types in df
+```{r}
+str(df)
+```
+6. changing variable types
+Like in SPSS you have to make sure your continuous variables are continuous and 
+your categorical variables are categorical. 
+ - Continuous variables = numeric 
+ - Categorical variables = factor
+```{r}
+df$MALE <- as.factor(df$MALE) #as.factor() makes the variable a factor or categorical variable
+df$AGE <- as.numeric(df$AGE) #as.numeric() makes the variable a number if it is something else
+df$SES <- as.factor(df$SES) 
+
+#Now lets look at our variables
+str(df)
+```
+
+
+7. Create new DF with certain variables
+```{r}
+# You can create new dataframes with certain variables with df[], the c() function, and using "variable"
+new_df = df[c("ID","AGE","MALE","SES")]
+new_df
+```
+
+8. recode a variable
+```{r}
+# We can recode a variable to have words instead of numbers for categories.
+df$MALE <- recode(
+  df$MALE, 
+  "0" = "Female", "1" = "Male"
+)
+summary(df$MALE)
+
+# Recode the variables to other numbers
+df$GROUP <- recode(
+  df$GROUP, 
+  "1" = 3, "2" = 2, "3" = 1
+)
+summary(df$GROUP)
+```
+So we have 20 females and 16 males
+
+9. Creating new continuous variables
+using the with() lets you specify your data set and then just type the variables names
+```{r}
+# sum of depression scores
+df$finalscore = with(df, (dep1 + dep2 + dep3))
+# average of depression scores
+df$finalscoreM = with(df, (dep1 + dep2 + dep3)/3)
+# Making a squared value
+df$timesq = with(df, (TIME*TIME))
+
+print("Here are the sum of their depression scores:")
+df$finalscore
+print("Here are the average of their depression scores:")
+df$finalscoreM
+print("Here is a variable that is the squared value of time:")
+df$timesq
+```
+
+10. Creating new categorical variables
+ifelse() is a function that works by stating a condition, and then giving two values 
+for if the condition is met or not met. So for example:
+```{r}
+#tempalte for ifelse() ->  ifelse(condition to be met, True, False)
+
+#You can create values that are numbers "
+df$poor_grad_student<- ifelse(df$SES ==2 , 1,0)
+df$poor_grad_student <- as.factor(df$poor_grad_student)
+
+# you can also make values that are string!
+df$Big_Sad <- ifelse(df$finalscore > 7,"Not Depressed", "Sad Boi")
+df$Big_Sad <- as.factor(df$Big_Sad)
+
+print("Here is the new varaible coding for being a grad student or not:")
+df$poor_grad_student
+print("Here is the new varaible coding for being a depression or not:")
+df$Big_Sad
+```
+
+#Stuff for homework: discriptives and figures
+Please Visit this website!!  https://statsandr.com/blog/descriptive-statistics-in-r/
+I have compiled stuff from here and elsewhere for our homework.
+
+### Looking at things in Base R
+Summary of our dataset - Kinda boring right? Not very helpful.
+```{r}
+summary(df)
+```
+Notice how R doesn't give you as much as SPSS (SAD!!), so we can manually calculate them. 
+
+Standard deviations
+```{r}
+# you have to manually calculatge SD. I promise R is worth it!
+sd(df$AGE)
+
+#you can also round your output in R
+round(sd(df$AGE))
+round(sd(df$AGE),2)
+```
+# Descriptive statistics with packages (USE THIS FOR HW)
+
+1. Summary of data set
+```{r}
+library(summarytools)
+dfSummary(df)
+```
+
+2. Frequency table for categorical variables
+```{r}
+library(summarytools)
+freq(df$SES)
+```
+
+2. Descriptive statistics table for continuous variables (USE THIS ONE)
+```{r}
+library(psych)
+# the variables with the "*" sign are categorical variables. So these stats don't work the same. 
+describeBy(df)
+```
+You may notice that this is a data frame. Packages will sometimes output stuff as data frames so that way we can extract these values and use them for tables and figures.
+
+bar plot 
+```{r}
+plot(df$MALE, ylab = "Frequency",xlab = "Gender",main = "Frequency of Gender",
+     col = c("pink","blue"))
+```
+
+histogram
+```{r}
+hist(df$finalscore, xlab = "Total Depression",main = "Frequency of Depression scores")
+```
+
+boxplot
+```{r}
+# This is a box of the final depression score by MAle
+boxplot(df$finalscore ~ df$MALE, 
+        main = "Depression score by gender",
+        xlab = "Gender",
+        ylab = "Depression score",
+        col = c("#FFE0B2", "#FFA726")
+)
+```
+
+boxplot (single variable)
+```{r}
+boxplot(df$finalscore,
+        main = "Scores of depression",
+        ylab = "Depression final score")
+```
+
+histogram by group
+```{r}
+#this one is fancy!!
+library(ggplot2) # This is a package that allows us to make fancy graphs.
+df$finalscore
+
+ggplot(df, #your data
+       aes(x = TIME) # your x value
+       ) +
+  geom_histogram(aes(color = MALE, fill = MALE), 
+                position = "identity", alpha = 0.4) +
+  scale_color_manual(values = c("#00AFBB", "#E7B800")) +
+  scale_fill_manual(values = c("#00AFBB", "#E7B800")) +
+  theme_classic()
+
+# OR this one!
+ggplot(df, aes(x = TIME)) +
+  geom_histogram(fill = "#E7B800", colour = "black") +
+  theme_classic() +
+  facet_wrap(~MALE)
+
+```
+
+
+
+
