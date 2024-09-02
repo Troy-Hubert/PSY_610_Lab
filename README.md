@@ -1,2 +1,2 @@
 # PSY_610_Lab
-This is all of the code that I used to teach the PSY 610 lab at the university of Kentucky. These materials are an intro to statistics for psychology graduate students. 
+This is a compilation of code that I used to teach the graduate psychology PSY 610 (intro statistics) lab at the University of Kentucky. These materials include visualizations, checking assumptions, analysis, and reporting of common introductory parametic and nonparametric tests. These include: t tests, chi squares, ANOVA, ANCOVA, and repeaated measures ANOVA. Materials are grouped into labs, which include the code, data, and powerpoints for each lab. These materials are being made public in an effort to improve educaiton and disimination of statistics, code, and R!
