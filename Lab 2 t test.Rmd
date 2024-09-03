@@ -196,9 +196,4 @@ between groups 2 and 3
 WE can see that there are significant differences in the proportions of students
 in groups compared to what we would expect!
 
-Writing it up:
-The Chi-squared test for given probabilities / goodness of fit of groups to
-a distribution of [n=148.25, n=444.75] suggests that the effect is
-statistically significant X2 (1, = 66.91, p < .001.
-
 
