@@ -99,6 +99,7 @@ hist(df_small$depression)
 df_small$success<- ifelse(df_small$depression > 25,"yes","no") 
 table(df_small$success)
 
+# this function tells you how many people you have in total
 length(df_small$success)
 ```
 You can see out of 2 people have a score of 25 or below.
@@ -120,7 +121,10 @@ Let’s also say that the gender makeup of college students is 57% female
 Does our sample have an equal gender breakdown as the larger population?
 ```{r}
 table(df$male)
-plot(df$male)
+```
+
+Plug those numbers in and run the test!
+```{r}
 #take the output from the frequency table and assign it to a variable male
 male<-c(335, 106)
 #run the chi square with the 57% female and 43% male expectation
@@ -136,7 +140,10 @@ Let’s say that group should be a variable where the distribution is 20/20/60
 ```{r}
 #get the frequencies
 table(df$group)
-plot(df$group)
+```
+
+
+```{r}
 #assign to group variable
 group<-c(28, 62, 351)
 #run the test
@@ -144,8 +151,10 @@ chisq.test(group, p = c(.2, .2, .6))
 #report the test!
 report(chisq.test(group, p = c(.2, .2, .6)))
 ```
-Now, you need to conduct three tests between 2 groups
-:
+
+We know that there is a significant difference. Now, we just need to find what groups are different from each other!
+
+Here are the proportions we would expect between each of the groups:
 Group 1 v. Group 2 (proportion 50/50)
 Group 1 v. Group 3 (proportion 1:3, 25/75)
 Group 2 v. Group 3 (proportion 1:3, 25/75)
@@ -154,13 +163,14 @@ Group 2 v. Group 3 (proportion 1:3, 25/75)
 
 #1. Start with frequencies 
 table(df$group)
+```
 
+
+```{r}
 #2. Assign values to group variables, 
 groups_1_2 <- c(28,62)
 groups_1_3 <- c(28,351)
 groups_2_3 <- c(62,531)
-
-
 ```
 
 3. run the tests seperaately with proportions above (what we expect)
