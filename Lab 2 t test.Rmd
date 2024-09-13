@@ -4,6 +4,7 @@ output: html_document
 date: "2024-08-29"
 ---
 
+# References for t-tests and this weeks lab
 These are the websites I used to compile information for this week:
 You can use this website a reference for t tests:  
 - https://www.geeksforgeeks.org/t-test-approach-in-r-programming/
@@ -19,7 +20,7 @@ This Markdown will show you code to analyze and report t tests. t tests are used
 to compare difereneces between the means. There are 3 t tests we will cover in this class:
 
 1. One sample t tests - comparing the mean a sample to the population mean.
-2. Two sample t test - comparing two different samples means.
+2. Independent t test (two sample t test) - comparing two different groups means.
 3. Paired sample t test - comparing group means of people within the same sample.
 
 
@@ -42,6 +43,7 @@ library(ggstatsplot) # for fancy t test reporting
 ```
 
 ## Import our data
+Lets choose HW1 dataset
 ```{r}
 df <- read_sav(file.choose())
 ```
@@ -55,6 +57,7 @@ df
 
 ## Single Sample t tests
 Using Base R t tests: Lets see if our sample is more depressed than the population:
+Again, single sample is comparing the mean of our sample to the population statistic (i.e., mu)
 ```{r}
 # mu is the test statistic mean we are comparing our sample to 
 t.test(df$depression, mu = 25)
@@ -80,7 +83,7 @@ gghistostats(
   effsize.type = "d", # Effect size (i.e., how significant it is)
   normal.curve = TRUE, # adding a normal curve to it
   normal.curve.args = list(color = "darkred",linewidth = 1),
-  bf.message = FALSE
+  bf.message = FALSE,
 )
 ```
 

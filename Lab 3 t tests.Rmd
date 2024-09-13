@@ -1,0 +1,165 @@
+---
+title: "Lab 3 t-test"
+output: html_document
+date: "2024-09-09"
+---
+
+# References for t-tests and this weeks lab
+These are the websites I used to compile information for this week:
+You can use this website a reference for t tests:  
+- https://www.geeksforgeeks.org/t-test-approach-in-r-programming/
+visualizing statistics (i.e., ggstatplot):
+- https://indrajeetpatil.github.io/ggstatsplot/
+reporting stats:
+- https://easystats.github.io/report/
+
+# T tests
+This Markdown will show you code to analyze and report t tests. t tests are used
+to compare difereneces between the means. There are 3 t tests we will cover in this class:
+
+1. One sample t tests - comparing the mean a sample to the population mean.
+2. Independent t test (two sample t test) - comparing two different groups means.
+3. Paired sample t test - comparing group means of people within the same sample.
+
+## Set up
+Lets install and load our packages. The fancy code below checks if you have 
+installed a package, and if you haven't, it installs it for you.
+```{r}
+if(!require(tidyverse)) {install.packages("tidyverse")}
+library(tidyverse) # for data stuff
+if(!require(haven)) {install.packages("haven")}
+library(haven) # for importing spss files
+if(!require(ggplot2)) {install.packages("ggplot2")}
+library(ggplot2) # for fancy t test reporting
+if(!require(ggstatsplot)) {install.packages("ggstatsplot")}
+library(ggstatsplot) # for fancy t test reporting
+if(!require(report)) {install.packages("report")}
+library(report) # for fancy t test reporting
+```
+
+## Import our data
+Lets choose HW1 dataset
+```{r}
+path <- file.choose()
+path
+df <- read_sav(path)
+```
+
+# prep our data
+```{r}
+df$male = as.factor(df$male)
+df$male <- recode(df$male, "1" = "Female", "2" = "Male")
+df$group = as.factor(df$group)
+df
+```
+
+
+## Single Sample t tests
+Using Base R t tests: Lets see if our sample is more depressed than the population:
+Again, single sample is comparing the mean of our sample to the population statistic (i.e., mu)
+```{r}
+# mu is the test statistic mean we are comparing our sample to 
+Single_t<- t.test(df$depression, mu = 25) # the <- assigns the output of that function to a variable in R
+
+Single_t # we can call the variable for the results of the t test
+```
+Our t test is significant! p < 0.05, with a large t value. 
+
+
+Using the {report} package will tell you if your t-test is significant and write up the results for you!
+```{r}
+library(report)
+#report(t.test(df$depression, mu = 25)) - you can type in the thing, or just Single_t
+report(Single_t)
+```
+
+You can write it up as this ^^^^ or you can also write it like this:
+
+The mean depression score of college students (M = 41.07) was significantly greater than the mean depression score reported for the general population (M = 25), t(440) = 27.72, p > .001, Cohen's d = 1.32, 95 CI = 1.19, 1.45).
+
+The {ggstatplot} will run the t test for you, show you a histogram of 
+your distribution, and show you the mean of your sample, and normal distribution.
+```{r}
+library('ggstatsplot')
+gghistostats(
+  data       = df, # Put your data here
+  x          = depression,  # put your x variable that you are running the test here
+  title      = "Scores of Depression in College Age Students", # change the title
+  test.value = 25, # This is the test statistic
+  #Don't worry about the stuff below!
+  binwidth   = 1,
+  effsize.type = "d", # Effect size (i.e., how significant it is)
+  normal.curve = TRUE, # adding a normal curve to it
+  normal.curve.args = list(color = "darkred",linewidth = 1),
+  bf.message = FALSE,
+)
+```
+
+## Independent t-test 
+Using base R, lets see if our depression scores differ between two groups (Gender)
+
+1. We must first see if the varaince is equal or not. 
+```{r}
+# Template - var.test(testvar ~ groupvar, data = datasetname)
+var.test(depression ~ male, data = df)
+```
+
+Equal variance is p>.05 so we can assume variance!
+
+2. Doing the T test
+```{r}
+#template - t.test(testvar ~ groupvar, data = datasetname, var.equal = TRUE or FALSE)
+t.test(depression ~ male, data = df, var.equal = TRUE)
+```
+
+3. Reporting
+```{r}
+library(report)
+report(t.test(depression ~ male, data = df, var.equal = TRUE))
+```
+
+You can write it up as this with some minor changes or you can write it up like this:
+
+An independent samples t-test was conducted to determine if the difference between the means on depression for males and females was significant. In comparison to males (M = 37.6), females (M = 42.2) report significantly higher depression symptomatology, t(439) = 3.438, p < .001; Cohen's d = 0.33, 95% CI = 0.14, 0.52).
+
+
+4. vizualizing difference between groups
+```{r}
+library(ggstatsplot)
+ggbetweenstats(
+  data  = df,
+  x     = male,
+  y     = depression,
+  title = "Distribution of Depression based on Gender",
+  var.equal = TRUE,
+  # You don't have to change below!
+    bf.message = FALSE, # takes away stats you don't need
+      effsize.type = "d" # Effect size (i.e., how significant it is)
+)
+```
+
+
+## paired t-test
+Say we wanted to look at people with depression before and after treatment.
+
+1. Run the test. No variance needed.
+```{r}
+t.test(df$depression, df$depression2, paired = TRUE)
+```
+
+2. Report the finding
+```{r}
+report(t.test(df$depression, df$depression2, paired = TRUE))
+```
+
+You can also write it up as this:
+
+A paired t-test was conducted to evaluate differences in depression scores over the course of treatment. The pre depression scores (M = 41.1, SD = 12.1) was significantly higher than post depression scores (M = 26.2, SD = 13.4, t(440) = 63.7, p  < 0.01; Cohen's d = 3.03, 95% CI = 2.81, 3.25). 
+
+3. Visualize the finding
+
+I couldn't get ggstatplot to work for paired t test :( I will find something and provide it for y'all if you are interested.
+
+
+
+
