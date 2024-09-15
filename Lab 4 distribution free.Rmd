@@ -24,12 +24,22 @@ We will be covering 3 tests today:
 Load packages
 ```{r}
 if(!require(tidyverse)) {install.packages("tidyverse")}
-library(tidyverse) # for data stuff
 if(!require(haven)) {install.packages("haven")}
-library(haven) # for importing spss files
-if(!require(report)) {install.packages("report")}
-library(report) # for fancy t test reporting
+if(!require(rstatix)) {install.packages("rstatix")}
+if(!require(coin)) {install.packages("coin")}
+
+# install.packages('effectsize')
 ```
+```{r}
+library(tidyverse) # data stuff
+library(dplyr) #data stuff
+library(haven) # for importing spss files
+library(rstatix) # for wilcoxan stuff
+library(ggpubr) # for plots
+library(coin)
+# library(effectsize)
+```
+
 
 ### Import our data
 ```{r}
@@ -40,16 +50,253 @@ df <- read_sav(file.choose())
 ### Prep our data
 ```{r}
 df$male = as.factor(df$male)
+df$male <- recode(df$male, "1" = "Female", "2" = "Male")
 df$group = as.factor(df$group)
 df
 ```
 
+### Single Sample Wilcoxon 
 
-
-Wilcoxon matched pairs 
+1. Descriptives for our question
 ```{r}
-a = wilcox.test(y, y2, paired = TRUE)
+# the %>% symbol is called a pipe operator and its "pipes" or moves data from one line to another.You'll see why we use this as we keep going. 
+df %>% 
+  get_summary_stats(depression, type = "median_iqr")
+```
 
+
+
+2. Run the test
+```{r}
+library(rstatix)
+#runs the tests 
+wilcox.test(df$depression ~ 1, mu = 25)
+#runs the effect size
+df %>% wilcox_effsize(depression ~ 1, mu = 25) # runs the effect size
+
+#median
+median(df$depression)
+
+#save these for the plot below
+w1_es <- df %>% wilcox_effsize(depression ~ 1, mu = 25)
+single_wilcox <- df %>% rstatix::wilcox_test(depression ~ 1, mu = 25)
+```
+
+3. Report it!
+
+We could report the result as follow:
+
+A Wilcoxon signed-rank test was computed to assess whether the sample median depression was different to the population normal median depression (25). The measured student median depression (41) was statistically significantly lower than the population median depression of 25 (p < 0.001, effect size r = 0.84).
+
+4. Visualize it:
+```{r}
+ggboxplot(
+  df$depression, # variable 
+  ylab = "Depression",  #label your y axis
+  xlab = "College Students", # label your x axis
+  #leave the rest below the same
+  width = .5, 
+  add = c("median", "jitter"), 
+  add.params = list(color= "blue",alpha = .5))+ # the plus sign lets us add more things to our plot when using a ggplot
+  labs(
+    subtitle = # we are making a subtitle
+    paste( #manually put in the info that you want!
+      "Wilcoxon test,", "p =", round(single_wilcox$p,4),
+      ", r =", round(w1_es$effsize,2)))
+```
+
+### Wilcoxon rank sum test 
+
+1. Examine differences between the two groups
+```{r}
+# these are called pipe operators it basically lets us pass information to the next line. 
+df %>%
+  group_by(male) %>%
+  get_summary_stats(depression, type = "median_iqr")
+```
+
+2. Run the test
+
+```{r}
+# run stats
+wilcox.test(df$depression ~ df$male)
+# effect size
+df %>% wilcox_effsize(depression ~ male) 
+# z test
+z = as.numeric(statistic(wilcox_test(df$depression ~ df$male), type="standardized"))
+names(z) = "z"
+z
+
+#save stats
+results2 <- df %>% 
+  rstatix::wilcox_test(depression ~ male) %>%
+  add_significance() %>%
+  add_xy_position(x = "male")
+results2_es <- df %>% wilcox_effsize(depression ~ male) # runs the effect size
+```
+
+3. Report it!
+
+We could report the result as follow:
+
+A Wilcoxon signed-rank test was computed to assess whether the sample median depression was different to the population normal median depression (25). The measured student median depression (41) was statistically significantly lower than the population median depression of 25 (p < 0.001, effect size r = 0.84).
+
+A Wilcoxon signed-rank test was computed to assess whether depression differs by sex within a student sample. The median depression in female group was 62.9 (IQR = 2.33), whereas the median in male group was 86.3 (IQR = 4.59). The Wilcoxon test showed that the difference was significant (z = 3.64, p < 0.001, effect size r = 0.86).
+
+4. Visualization
+```{r}
+ggboxplot(df,
+  y =  "depression", # outcome variable
+  x =  "male", # predictor variable
+  ylab = "Depression",  #label your y axis
+  xlab = "Gender", # label your x axis
+  #leave the rest below the same
+  width = .5, 
+  add = c("median", "jitter"), 
+  add.params = list(color= "male",alpha = .5)) + # the plus sign lets us add more things to our plot when using a ggplot
+  stat_pvalue_manual(results2, tip.length = 0) +
+  labs(
+    subtitle = # we are making a subtitle
+    paste( #manually put in the info that you want!
+      "Wilcoxon test,", "z =", round(z,2), "p =", round(results2$p,4),
+      ", r =", round(results2_es$effsize,2)))
+```
+
+### Paired sample wilcox test
+
+1. Summary statistics
+
+lets look at the difference between pre and post scores of depression
+```{r}
+df %>%
+  get_summary_stats(c(depression, depression2), type = "median_iqr")
+```
+
+1.1 we have to run this for some of the stats to work. I am happy to teach you if you want to learn more about it
+```{r}
+df_long <- df %>% 
+  pivot_longer(
+    cols = depression:depression2,
+    names_to = "Timepoint",
+    values_to = "Depression") %>%
+  mutate(
+    Timepoint = as.factor(Timepoint),
+    Timepoint = recode(
+      df_long$Timepoint,
+      "depression" = "pre",
+      "depression2" = "post")
+    )
+
+```
+
+
+2. Run the tests
+
+```{r}
+# test
+wilcox.test(df$depression, df$depression2, paired = TRUE)
+# effect size
+df_long %>% wilcox_effsize(Depression ~ Timepoint, paired = TRUE)
+
+# z test
+
+results3 <- df_long  %>%
+  rstatix::wilcox_test(Depression ~ Timepoint, paired = TRUE) %>%
+  add_significance() 
+
+as.numeric(statistic(results3))
+
+
+
+z = as.numeric(statistic(rstatix::wilcox_test(df_long$Depression ~ df_long$Timepoint, paired = TRUE), type="standardized"))
+names(z) = "z"
+z
+
+
+rstatix::wilcox_test(df_long$Depression ~ df_long$Timepoint, paired = TRUE)
+
+
+
+
+df  %>%
+  rstatix::wilcox_test(depression ~ depression2, paired = TRUE)
+
+
+
+length(df$depression2)
+length(df$depression)
+
+
+```
+
+
+```{r}
+#converting data to long data (needed for boxplot)
+
+
+
+
+bxp <- ggpaired(mice2.long, x = "group", y = "weight", 
+         order = c("before", "after"),
+         ylab = "Weight", xlab = "Groups")
+
+```
+
+
+
+
+
+```{r}
+n = 16
+
+N = n + n
+
+A = runif(n,1,10)
+B = A + 5 + rnorm(n,0,4)
+
+Group = factor(c(rep("A", length(A)), rep("B", length(B))))
+Y = c(A,B)
+
+boxplot(Y ~ Group)
+
+library(coin)
+
+MW = wilcox_test(Y ~ Group)
+MW
+
+Z = as.numeric(statistic(MW, type="standardized"))
+names(Z) = "Z"
+
+Z
+
+   ###         Z 
+   ### -4.258848 
+
+MWa = wilcox.test(Y ~ Group, exact=FALSE)
+
+MWa
+
+Za = qnorm(MWa$p.value/2)
+
+Za
+
+   ### [1] -4.240003
+
+r = abs(Z)/sqrt(N)
+names(r) = "r"
+
+r
+
+   ###        r 
+   ### 0.752865
+
+ra = abs(Za)/sqrt(N)
+names(ra) = "ra"
+
+ra
+
+   ###        ra 
+   ### 0.7495338
 ```
 
 
