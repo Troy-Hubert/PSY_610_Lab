@@ -1,0 +1,59 @@
+---
+title: "Lab 4 Distribution Free tests"
+output: html_document
+date: "2024-09-13"
+---
+
+## Resourcecs for todays lab
+
+
+
+
+## Distribution Free Tests
+
+Last week we covered t-tests. T tests examine differences in means based upon assumtions of their distribution. 
+Today we will be covering tests that do make assumptions on distribution. These tests are also called non-parametric tests.
+These tests are often used with smaller sample sizes and rely on medians or ranks of data rather than means. 
+
+We will be covering 3 tests today:
+1. Wilcoxon signed rank - single group test (i.e., like the single sample t-test)
+2. Wilcoxon matched pairs - paired test (i.e., like the paired sample t-test)
+3. Mann-Whitney U - two sample (i.e., like the two sample t test)
+
+### Set up
+Load packages
+```{r}
+if(!require(tidyverse)) {install.packages("tidyverse")}
+library(tidyverse) # for data stuff
+if(!require(haven)) {install.packages("haven")}
+library(haven) # for importing spss files
+if(!require(report)) {install.packages("report")}
+library(report) # for fancy t test reporting
+```
+
+### Import our data
+```{r}
+# select the dataset from homework 1
+df <- read_sav(file.choose())
+```
+
+### Prep our data
+```{r}
+df$male = as.factor(df$male)
+df$group = as.factor(df$group)
+df
+```
+
+
+
+Wilcoxon matched pairs 
+```{r}
+a = wilcox.test(y, y2, paired = TRUE)
+
+```
+
+
+
+
+
+

@@ -91,7 +91,7 @@ gghistostats(
   effsize.type = "d", # Effect size (i.e., how significant it is)
   normal.curve = TRUE, # adding a normal curve to it
   normal.curve.args = list(color = "darkred",linewidth = 1),
-  bf.message = FALSE,
+  bf.message = FALSE
 )
 ```
 

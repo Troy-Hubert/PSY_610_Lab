@@ -1,0 +1,40 @@
+---
+title: "Validity"
+output: html_document
+date: "2024-09-04"
+---
+
+```{r setup, include=FALSE}
+if(!require("ltm")) install.packages("ltm")
+library('ltm')
+if(!require("haven")) install.packages("haven")
+library('haven')
+```
+
+## Import data
+
+The file choose button lets you choose it out of your files and then it will import it. You just need to put it in the right file import function.
+```{r}
+library(haven)
+df <- read_sav(file.choose())
+df
+```
+
+## Valdity - Chronbacs Alpha
+
+https://www.geeksforgeeks.org/how-to-calculate-cronbachs-alpha-in-r/
+
+Chronbac alpha tells us the validity of the measure we are using. 
+it ranges from 0-1 with values closer to 1 having better validity.
+
+```{r}
+library('ltm')
+
+# template - cronbach.alpha(data, standardized, CI )
+cronbach.alpha(df[,c("pd1","pd2", "pd3", "pd4")], # we can select what variables we want
+                 standardized = TRUE, # this standardizes things so everything is viewed the same.
+                 CI = TRUE # this shows us a range of values the statistic could be
+)
+```
+
+We can see that this has pretty good validity!
