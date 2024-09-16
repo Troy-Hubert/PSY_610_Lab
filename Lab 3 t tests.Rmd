@@ -35,13 +35,14 @@ if(!require(ggstatsplot)) {install.packages("ggstatsplot")}
 library(ggstatsplot) # for fancy t test reporting
 if(!require(report)) {install.packages("report")}
 library(report) # for fancy t test reporting
+library(lsr)
 ```
 
 ## Import our data
 Lets choose HW1 dataset
 ```{r}
-path <- file.choose()
-path
+#path <- file.choose()
+path <- "/Users/troyhubert/Library/CloudStorage/OneDrive-UniversityofKentucky/TA/610 - Statistivcs/Lab 3/Lab3_Data.sav"
 df <- read_sav(path)
 ```
 
@@ -62,6 +63,10 @@ Again, single sample is comparing the mean of our sample to the population stati
 Single_t<- t.test(df$depression, mu = 25) # the <- assigns the output of that function to a variable in R
 
 Single_t # we can call the variable for the results of the t test
+
+# Cohans D
+cohensD(x = df$depression, mu = 25)
+
 ```
 Our t test is significant! p < 0.05, with a large t value. 
 
@@ -110,12 +115,15 @@ Equal variance is p>.05 so we can assume variance!
 ```{r}
 #template - t.test(testvar ~ groupvar, data = datasetname, var.equal = TRUE or FALSE)
 t.test(depression ~ male, data = df, var.equal = TRUE)
+cohensD(depression ~ male, data = df)
 ```
 
 3. Reporting
 ```{r}
 library(report)
 report(t.test(depression ~ male, data = df, var.equal = TRUE))
+
+#for some reason report is reporting the incorrect cohens D. You will need to replace that with the correct value!.
 ```
 
 You can write it up as this with some minor changes or you can write it up like this:
@@ -144,7 +152,10 @@ Say we wanted to look at people with depression before and after treatment.
 
 1. Run the test. No variance needed.
 ```{r}
+# the tests
 t.test(df$depression, df$depression2, paired = TRUE)
+# cohens d
+cohensD(df$depression, df$depression2,method = "paired")
 ```
 
 2. Report the finding
