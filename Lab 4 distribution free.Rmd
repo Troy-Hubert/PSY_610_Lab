@@ -2,29 +2,41 @@
 title: "Lab 4 Distribution Free tests"
 output: html_document
 date: "2024-09-13"
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ## Resourcecs for todays lab
 
 Running wilcoxon tests
-- https://www.datanovia.com/en/lessons/wilcoxon-test-in-r/
-Making figures with ggpubr
 
+\- <https://www.datanovia.com/en/lessons/wilcoxon-test-in-r/> Making
+figures with ggpubr
 
 ## Distribution Free Tests
 
-Last week we covered t-tests. T tests examine differences in means based upon assumtions of their distribution. 
-Today we will be covering tests that do make assumptions on distribution. These tests are also called non-parametric tests.
-These tests are often used with smaller sample sizes and rely on medians or ranks of data rather than means. 
+Last week we covered t-tests. T tests examine differences in means based
+upon assumtions of their distribution. Today we will be covering tests
+that do make assumptions on distribution. These tests are also called
+non-parametric tests. These tests are often used with smaller sample
+sizes and rely on medians or ranks of data rather than means.
 
 We will be covering 3 tests today:
-1. Wilcoxon signed rank - single group test (i.e., like the single sample t-test)
-2. Wilcoxon matched pairs - paired test (i.e., like the paired sample t-test)
-3. Mann-Whitney U - two sample (i.e., like the two sample t test)
+
+1\. Wilcoxon signed rank - single group test (i.e., like the single
+sample t-test)
+
+2\. Wilcoxon matched pairs - paired test (i.e., like the paired sample
+t-test)
+
+3\. Mann-Whitney U - two sample (i.e., like the two sample t test)
 
 ### Set up
+
 Load packages
-```{r}
+
+```{r, results= 'hide', message=FALSE, warning=FALSE}
 if(!require(tidyverse)) {install.packages("tidyverse")}
 if(!require(haven)) {install.packages("haven")}
 if(!require(rstatix)) {install.packages("rstatix")}
@@ -32,25 +44,31 @@ if(!require(coin)) {install.packages("coin")}
 
 # install.packages('effectsize')
 ```
+
 load packages
-```{r}
+
+```{r, results= 'hide', message=FALSE, warning=FALSE}
 library(tidyverse) # data stuff
 library(dplyr) #data stuff
 library(haven) # for importing spss files
 library(rstatix) # for wilcoxan stuff
 library(ggpubr) # for plots
 library(coin)
+library(gt)
 # library(effectsize)
 ```
 
-
 ### Import our data
+
 ```{r}
 # select the dataset from homework 1
-df <- read_sav(file.choose())
+
+path <- file.choose()
+df <- read_sav(path)
 ```
 
 ### Prep our data
+
 ```{r}
 df$male = as.factor(df$male)
 df$male <- recode(df$male, "1" = "Female", "2" = "Male")
@@ -59,18 +77,18 @@ df <- filter(df,id < 30)
 df
 ```
 
-### Single Sample Wilcoxon 
+## Single Sample Wilcoxon
 
-1. Descriptives for our question
+### 1. Descriptive for our question
+
 ```{r}
 # the %>% symbol is called a pipe operator and its "pipes" or moves data from one line to another.You'll see why we use this as we keep going. 
 df %>% 
   get_summary_stats(depression, type = "median_iqr")
 ```
 
+### 2. Run the test
 
-
-2. Run the test
 ```{r}
 library(rstatix)
 #runs the tests 
@@ -86,13 +104,18 @@ w1_es <- df %>% wilcox_effsize(depression ~ 1, mu = 25)
 single_wilcox <- df %>% rstatix::wilcox_test(depression ~ 1, mu = 25)
 ```
 
-3. Report it!
+### 3. Report it!
 
 We could report the result as follow:
 
-A Wilcoxon signed-rank test was computed to assess whether the sample median depression was different to the population normal median depression (25). The measured student median depression (40) was statistically significantly lower than the population median depression of 25 (p < 0.001, effect size r = 0.88).
+A Wilcoxon signed-rank test was computed to assess whether the sample
+median depression was different to the population normal median
+depression (25). The measured student median depression (40) was
+statistically significantly lower than the population median depression
+of 25 (p \< 0.001, effect size r = 0.88).
 
-4. Visualize it:
+### 4. Visualization
+
 ```{r}
 ggboxplot(
   df$depression, # variable 
@@ -109,9 +132,10 @@ ggboxplot(
       ", r =", round(w1_es$effsize,2)))
 ```
 
-### Wilcoxon rank sum test 
+## Wilcoxon rank sum test - two groups
 
-1. Examine differences between the two groups
+### 1. Examine differences between the two groups
+
 ```{r}
 # these are called pipe operators it basically lets us pass information to the next line. 
 df %>%
@@ -119,7 +143,7 @@ df %>%
   get_summary_stats(depression, type = "median_iqr")
 ```
 
-2. Run the test
+### 2. Run the test
 
 ```{r}
 # run stats
@@ -139,13 +163,18 @@ results2 <- df %>%
 results2_es <- df %>% wilcox_effsize(depression ~ male) # runs the effect size
 ```
 
-3. Report it!
+### 3. Report it!
 
 We could report the result as follow:
 
-A Wilcoxon signed-rank test was computed to assess whether depression differs by sex within a student sample. The median depression in female group was 44 (IQR = 18.50), whereas the median in male group was 39.9 (IQR = 15.25). The Wilcoxon test showed that the difference was not significant (z = -0.36, p = 0.73, effect size r = 0.06).
+A Wilcoxon signed-rank test was computed to assess whether depression
+differs by sex within a student sample. The median depression in female
+group was 44 (IQR = 18.50), whereas the median in male group was 39.9
+(IQR = 15.25). The Wilcoxon test showed that the difference was not
+significant (z = -0.36, p = 0.73, effect size r = 0.06).
 
-4. Visualization
+### 4. Visualization
+
 ```{r}
 ggboxplot(df,
   y =  "depression", # outcome variable
@@ -173,17 +202,19 @@ ggboxplot(df,
       ", r =", round(results2_es$effsize,2)))
 ```
 
-### Paired sample wilcox test
+## Paired sample wilcox test
 
-1. Summary statistics
+### 1. Summary statistics
 
 lets look at the difference between pre and post scores of depression
+
 ```{r}
 df %>%
   get_summary_stats(c(depression, depression2), type = "median_iqr")
 ```
 
-1.1 we have to run this for some of the stats to work. I am happy to teach you if you want to learn more about it
+### 1.1 we have to run this for some of the stats to work. I am happy to teach you if you want to learn more about it
+
 ```{r}
 df_long <- df %>% 
   pivot_longer(
@@ -198,8 +229,7 @@ df_long <- df %>%
       "depression2" = "post"))
 ```
 
-
-2. Run the tests
+### 2. Run the tests
 
 ```{r}
 # test
@@ -216,11 +246,16 @@ results3 <- df_long %>%
 results3_es <- df_long %>% wilcox_effsize(Depression ~ Timepoint, paired = TRUE)
 ```
 
-3. Report the findings
+### 3. Report the findings
 
-A paired sample Wilcoxon signed rank test was conducted to example differences pre and post depression treatmen. The median depression of the participants before treatment is significantly higher (M = 40) from the median depression score after treatment (M = 27) with a p-value < 0.001 and effect size of r = 0.87.
+A paired sample Wilcoxon signed rank test was conducted to example
+differences pre and post depression treatmen. The median depression of
+the participants before treatment is significantly higher (M = 40) from
+the median depression score after treatment (M = 27) with a p-value <
+0.001 and effect size of r = 0.87.
 
-4. Visulization
+### 4. Visulization
+
 ```{r}
 ggpaired(df_long, x = "Timepoint", y = "Depression", 
          order = c("pre", "post"),
@@ -237,7 +272,3 @@ ggpaired(df_long, x = "Timepoint", y = "Depression",
       ", r =", round(results3_es$effsize,2)))
         
 ```
-
-
-
-
