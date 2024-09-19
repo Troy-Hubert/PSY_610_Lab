@@ -38,12 +38,6 @@ Tests we are not going over but I'm providing references for:
 -   Wilcoxon signed rank - paired test (i.e., like the paired sample
     t-test, but with a median).
 
-## References
-
-Man whitney U test (i.e., wilcoxon tests) -
-<https://www.datanovia.com/en/lessons/wilcoxon-test-in-r/> Making
-figures with ggpubr -
-
 ## Set up
 
 ### Packages
@@ -55,7 +49,7 @@ if(!require(tidyverse)) {install.packages("tidyverse")}
 if(!require(haven)) {install.packages("haven")}
 if(!require(rstatix)) {install.packages("rstatix")}
 if(!require(coin)) {install.packages("coin")}
-
+if(!require(ggstatsplot)) {install.packages("ggstatplot")}
 # install.packages('effectsize')
 ```
 
@@ -70,6 +64,7 @@ library(report)
 library(ggpubr) # for plots
 library(coin)
 library(gt) #tables / stats
+library(ggstatsplot)
 # library(effectsize)
 ```
 
@@ -86,8 +81,8 @@ df <- read_sav(path)
 df$male = as.factor(df$male)
 df$male <- recode(df$male, "1" = "Female", "2" = "Male")
 df$group = as.factor(df$group)
-df2 <- filter(df,id < 30)
 #df 2 is a sample of only 20 people, df is the sample with all of the people in it.
+df2 <- filter(df,id < 30)
 df2
 ```
 
@@ -121,7 +116,6 @@ difference here.
 ```{r}
 # template for this is binom.test(number of yeses, total amount)
 binom.test(x = 27,n =29, p =.5)
-
 ```
 
 Just like SPSS, Its significant! We reject the null hypothesis that we
@@ -237,7 +231,6 @@ This test serves as a distribution free analog of the two sample t test
 1.  Examine differences between groups
 
 ```{r}
-
 # "%>% these are called pipe operators it basically lets us pass information to the next line. 
 library(tidyverse)
 df2 %>%
@@ -436,5 +429,4 @@ ggpaired(df_long, x = "Timepoint", y = "Depression",
               paste( #manually put in the info that you want!
       "Wilcoxon test,", "V =", results3$statistic, "p =", round(results3$p,4),
       ", r =", round(results3_es$effsize,2)))
-        
 ```
