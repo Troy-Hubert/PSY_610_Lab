@@ -69,7 +69,7 @@ library(rstatix) # for wilcoxan stuff
 library(report)
 library(ggpubr) # for plots
 library(coin)
-library(gt)
+library(gt) #tables / stats
 # library(effectsize)
 ```
 
@@ -86,7 +86,7 @@ df <- read_sav(path)
 df$male = as.factor(df$male)
 df$male <- recode(df$male, "1" = "Female", "2" = "Male")
 df$group = as.factor(df$group)
-df2 <- filter(df,id < 21)
+df2 <- filter(df,id < 30)
 #df 2 is a sample of only 20 people, df is the sample with all of the people in it.
 df2
 ```
@@ -120,7 +120,7 @@ difference here.
 
 ```{r}
 # template for this is binom.test(number of yeses, total amount)
-binom.test(x = 18,n =20, p =.5)
+binom.test(x = 27,n =29, p =.5)
 
 ```
 
@@ -143,7 +143,6 @@ Does our sample have an equal gender breakdown as the larger population?
 
 ```{r}
 table(df$male)
-plot(df$male)
 ```
 
 2.  Run and report the test
@@ -157,6 +156,14 @@ chisq.test(male, p = c(.57, .43))
 report(chisq.test(male, p = c(.57, .43)))
 ```
 
+3.  Report the test
+
+A chi-square test of given probabilities was performed to determine
+whether the distribution of gender different compared to the general
+population. The chi-square test suggests that there is a statistically
+significant difference between the distribution of gender in the sample
+relative to the general population *X*2(n = 20) = 64.71, p \< 0.001.
+
 ### Three Group Chi Square - Single sample vs population
 
 We’re gonna use the variable ‘group’ Let’s say that group should be a
@@ -168,7 +175,6 @@ variable where the distribution is 20/20/60.
 ```{r}
 #get the frequencies
 table(df$group)
-plot(df$group)
 #assign to group variable
 group<-c(28, 62, 351)
 #run the test
@@ -226,9 +232,70 @@ students in groups compared to what we would expect in the population!
 
 ## 3. Moods Median Test - two groups
 
+This test serves as a distribution free analog of the two sample t test
+
+1.  Examine differences between groups
+
+```{r}
+
+# "%>% these are called pipe operators it basically lets us pass information to the next line. 
+library(tidyverse)
+df2 %>%
+  group_by(male) %>%
+  get_summary_stats(depression, type = "median_iqr")
+```
+
+They look the same! We would expect that there should be no difference,
+for the sake of the lab, lets still run the test.
+
+2.  Run the test
+
+```{r}
+mood_test<- mood.test(df2$depression ~ df2$male)
+mood_test
+```
+
+3.  Report the findings:
+
+A moods median test was computed to assess whether depression differs by
+sex within a student sample. The median depression in female group was
+44 (IQR = 18.5), whereas the median in male group was 39 (IQR = 15.25).
+The moods median test showed that the difference was not significant (z
+= 1.16, p = 0.2)
+
+3.  Visualize the finding:
+
+```{r}
+#simple plot
+ggboxplot(df2,
+  y =  "depression", # outcome variable
+  x =  "male", # predictor variable
+  ylab = "Depression",  #label your y axis
+  xlab = "Gender", # label your x axis,
+  color = "male"
+)
+
+#fancy plot
+ggboxplot(df2,
+  y =  "depression", # outcome variable
+  x =  "male", # predictor variable
+  ylab = "Depression",  #label your y axis
+  xlab = "Gender", # label your x axis,
+  # color = "male",
+  #leave the rest below the same
+  width = .5, 
+  add = c("median", "jitter"), 
+  add.params = list(color= "male",alpha = .5)) + # the plus sign lets us add more things to our plot when using a ggplot
+  labs(
+    caption = # we are making a subtitle
+    paste( #manually put in the info that you want!
+      "Mood test,", "z =", round(mood_test$statistic,2), "p =", round(mood_test$p.value,4)))
+```
+
 ## 4. Man Whitney U (aka Wilcox test) - two groups
 
 This test serves as a distribution free analog of the two sample t test.
+It uses ranks of participants in its analysis.
 
 1.  Examine differences between the two groups
 
