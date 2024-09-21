@@ -1,0 +1,102 @@
+---
+title: "Practice quiz"
+output: html_document
+date: "2024-09-21"
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+# Practice Quiz 1 - Data Analysis Questions
+
+These are the questions and answers for the first practice exam.
+
+## Setup
+
+### Install packages
+
+```{r setup, include=FALSE}
+if(!require("haven")) install.packages("haven")
+if(!require('dplyr')) install.packages('dplyr')
+if(!require('tidyverse')) {install.packages("tidyverse")}
+if(!require('report')) {install.packages("report")}
+if(!require(rstatix)) {install.packages("rstatix")}
+if(!require(coin)) {install.packages("coin")}
+
+```
+
+### Load Packages 
+
+```{r}
+library('haven') # import SPSS files
+library('dplyr') #use this for data management
+library('tidyverse') # for data stuff
+library('report') # for fancy t test reporting
+library('rstatix') # for wilcoxan stuff
+library('ggpubr') # for plots
+library('coin')
+```
+
+### Import data
+
+```{r}
+path <- file.choose()
+df <- read_sav(path)
+```
+
+### Prep data for anlyses
+
+```{r}
+df$hadcovid = as.factor(df$hadcovid)
+df$group = as.factor(df$group)
+df
+```
+
+## Practice Exam Questions
+
+1.  Run a one-sample t-test using the DV “time” and a test value of 50.
+    Choose the correct result from the test below.
+    1.  t(2389) = -2.600, p = .082
+    2.  t(120) = 18.872, p \< .001
+    3.  t(440) = -2.600, p = 0.010 \<- correct answer
+    4.  t(440) = 2.620, p = 0.869
+
+```{r}
+q1 <- t.test(df$time, mu = 50)
+q1
+report(q1)
+```
+
+2.  Run a dependent samples t-test using the DV “beforeanxiety” and the
+    DV “afteranxiety”. Choose the correct result from the test below.
+    Put in “beforeanxiety” first so the t value sign is correct.
+
+    a\. t(440) = 25.325, p \< .001 \<- Correct answer
+
+    b\. t(440) = 6.622, p = .912
+
+    c\. t(167) = 0.561, p = .772
+
+    d\. t(167) = 2.635, p = .046
+
+```{r}
+t.test(df$beforeanxiety, df$afteranxiety, paired = TRUE)
+report(t.test(df$beforeanxiety, df$afteranxiety, paired = TRUE))
+
+```
+
+3.  Run a 3+ group Chi-Square test using the variable “group”. The
+    hypothesized distribution for this variable is 33/33/33 or ‘equal’.
+    Choose the correct result from the test below.
+
+    m\. Chi-square value = 0.054, sig = .973 \<- Correct
+
+    n\. Chi-square value = 1.504, sig = .773
+
+    o\. Chi-square value = 2.789, sig = .005
+
+    p\. Chi-square value = 0.632, sig \< .001
+
+```{r}
+
+```

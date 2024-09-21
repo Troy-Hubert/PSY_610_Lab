@@ -52,6 +52,7 @@ df <- read_sav(file.choose())
 df$male = as.factor(df$male)
 df$male <- recode(df$male, "1" = "Female", "2" = "Male")
 df$group = as.factor(df$group)
+df <- filter(df, id < 30)
 df
 ```
 
@@ -99,7 +100,7 @@ ggboxplot(
   add = c("median", "jitter"), 
   add.params = list(color= "blue",alpha = .5))+ # the plus sign lets us add more things to our plot when using a ggplot
   labs(
-    subtitle = # we are making a subtitle
+    caption = # we are making a subtitle
     paste( #manually put in the info that you want!
       "Wilcoxon test,", "p =", round(single_wilcox$p,4),
       ", r =", round(w1_es$effsize,2)))
@@ -153,10 +154,10 @@ ggboxplot(df,
   #leave the rest below the same
   width = .5, 
   add = c("median", "jitter"), 
-  add.params = list(color= "male",alpha = .5)) + # the plus sign lets us add more things to our plot when using a ggplot
+  add.params = list(color= "male",alpha = .5)) +# the plus sign lets us add more things to our plot when using a ggplot
   stat_pvalue_manual(results2, tip.length = 0) +
   labs(
-    subtitle = # we are making a subtitle
+    caption = # we are making a subtitle
     paste( #manually put in the info that you want!
       "Wilcoxon test,", "z =", round(z,2), "p =", round(results2$p,4),
       ", r =", round(results2_es$effsize,2)))
@@ -186,7 +187,6 @@ df_long <- df %>%
       "depression" = "pre",
       "depression2" = "post")
     )
-
 ```
 
 
@@ -194,45 +194,49 @@ df_long <- df %>%
 
 ```{r}
 # test
-wilcox.test(df$depression, df$depression2, paired = TRUE)
+test3<- wilcox.test(df$depression, df$depression2, paired = TRUE)
+test3
 # effect size
 df_long %>% wilcox_effsize(Depression ~ Timepoint, paired = TRUE)
-
 # z test
-
-results3 <- df_long  %>%
-  rstatix::wilcox_test(Depression ~ Timepoint, paired = TRUE) %>%
-  add_significance() 
-
-as.numeric(statistic(results3))
-
-
-
-z = as.numeric(statistic(rstatix::wilcox_test(df_long$Depression ~ df_long$Timepoint, paired = TRUE), type="standardized"))
+z = qnorm(test3$p.value/2)
 names(z) = "z"
 z
 
-
-rstatix::wilcox_test(df_long$Depression ~ df_long$Timepoint, paired = TRUE)
-
-
-
-
-df  %>%
-  rstatix::wilcox_test(depression ~ depression2, paired = TRUE)
-
-
-
-length(df$depression2)
-length(df$depression)
-
-
+#save results
+results3 <- df_long %>%
+  rstatix::wilcox_test(Depression ~ Timepoint, paired = TRUE) %>%
+  add_significance() %>%
+  add_xy_position(x = "Timepoint")
+results3_es <- df_long %>% wilcox_effsize(Depression ~ Timepoint, paired = TRUE)
 ```
 
+3. report it
+
+
+
+
+4. visualization
 
 ```{r}
 #converting data to long data (needed for boxplot)
 
+ggpaired(df_long,
+  y =  "Depression", # outcome variable
+  x =  "Timepoint", # predictor variable
+  order = c("pre", "post"),
+  ylab = "Depression",  #label your y axis
+  xlab = "Timepoint", # label your x axis
+  #leave the rest below the same
+  width = .5, 
+  add = c("median", "jitter"), 
+  add.params = list(color= "male",alpha = .5)) # the plus sign lets us add more things to our plot when using a ggplot
+  stat_pvalue_manual(results2, tip.length = 0) +
+  labs(
+    caption = # we are making a subtitle
+    paste( #manually put in the info that you want!
+      "Wilcoxon test,", "z =", round(z,2), "p =", round(results2$p,4),
+      ", r =", round(results2_es$effsize,2)))
 
 
 
