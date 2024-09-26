@@ -30,14 +30,6 @@ Alternative to two sample t tests
 4.  Wilcoxon matched pairs - paired test (i.e., like the paired sample
     t-test)
 
-Tests we are not going over but I'm providing references for:
-
--   Wilcoxon signed rank - single group test (i.e., like the single
-    sample t-test, but with a median).
-
--   Wilcoxon signed rank - paired test (i.e., like the paired sample
-    t-test, but with a median).
-
 ## Set up
 
 ### Packages
@@ -49,8 +41,8 @@ if(!require(tidyverse)) {install.packages("tidyverse")}
 if(!require(haven)) {install.packages("haven")}
 if(!require(rstatix)) {install.packages("rstatix")}
 if(!require(coin)) {install.packages("coin")}
-if(!require(ggstatsplot)) {install.packages("ggstatplot")}
-# install.packages('effectsize')
+if(!require(ggpubr)) {install.packages("ggpubr")}
+if(!require('RVAideMemoire')) {install.packages("RVAideMemoire")}
 ```
 
 load packages
@@ -60,12 +52,10 @@ library(tidyverse) # data stuff
 library(dplyr) #data stuff
 library(haven) # for importing spss files
 library(rstatix) # for wilcoxan stuff
-library(report)
+library(report) # reportin gthings
 library(ggpubr) # for plots
 library(coin)
-library(gt) #tables / stats
-library(ggstatsplot)
-# library(effectsize)
+library('RVAideMemoire')
 ```
 
 ### Import our data
@@ -143,9 +133,10 @@ table(df$male)
 
 ```{r}
 #take the output from the frequency table and assign it to a variable male
-male<-c(335, 106)
+male<-c(325, 116)
 #run the chi square with the 57% female and 43% male expectation
 chisq.test(male, p = c(.57, .43))
+chisq.test(c(325, 116), p = c(.57, .43))
 #use report to tell us what this means!
 report(chisq.test(male, p = c(.57, .43)))
 ```
@@ -244,8 +235,7 @@ for the sake of the lab, lets still run the test.
 2.  Run the test
 
 ```{r}
-mood_test<- mood.test(df2$depression ~ df2$male)
-mood_test
+median_test(df$depression ~ df$male)
 ```
 
 3.  Report the findings:

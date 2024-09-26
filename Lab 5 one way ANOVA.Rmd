@@ -1,0 +1,193 @@
+---
+title: "Lab 5 one way ANOVA"
+output: html_document
+date: "2024-09-26"
+---
+
+# One Way ANOVA
+
+Today in lab we will be discussing how to conduct a 1 way anova. We will not be discussing assumptions or contrasts in this lab.
+
+resources for this lab:
+
+1.  [mega anova resource](https://statsandr.com/blog/anova-in-r/)
+
+## Setup
+
+Install packages
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = TRUE)
+if(!require(tidyverse)) {install.packages("tidyverse")}
+if(!require(haven)) {install.packages("haven")}
+if(!require(rstatix)) {install.packages("rstatix")}
+if(!require(ggpubr)) {install.packages("ggpubr")}
+if(!require(report)) {install.packages("report")}
+if(!require(ggstatsplot)) {install.packages("ggstatsplot")}
+```
+
+Load packages
+
+```{r}
+library(tidyverse) # data stuff
+library(haven) # for importing spss files
+library(report) # reportin gthings
+library(ggpubr) # for plots
+library(ggstatsplot) # for fancy plots
+```
+
+Impot and prep data
+
+```{r}
+#1. Import data
+path <- file.choose()
+# df <- read_sav(path)
+df2 <- read_sav(path)
+
+df2
+```
+
+```{r}
+# make your categorical variables factors
+df2 <- df2 %>%
+  mutate(
+    male = as.factor(male),
+    group = as.factor(group),
+    christ = as.factor(christ),
+    diagnosis = as.factor(diagnosis),
+    school = as.factor(school)
+  ) 
+df2$male <- recode(df2$male, "0" = "Female", "1" = "Male")
+df2$group <- recode(df2$group, "1" = "DSH", "2" = "Cog Neuro", "3" = "Clinical")
+
+df2
+```
+
+## First research question:
+
+We are interested in seeing if the drinking scores differ by group of psychology grad students.
+
+### 1. Look at the data
+
+Before we run the ANOVA, lets just look at our data. Do we thtink there is a difference between these groups and the grand mean?
+
+```{r}
+# descriptive
+library(dplyr)
+df2 %>%
+  group_by(group) %>%
+  summarise(
+    count = n(),
+    mean = mean(drinking, na.rm = TRUE),
+    sd = sd(drinking, na.rm = TRUE))
+
+# vizualize
+library("ggpubr")
+ggboxplot(df2, x = "group", y = "drinking", 
+          color = "group", palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+          ylab = "Drinking", xlab = "Group",
+          title = "Drinking by grad program",
+          add = c("jitter")) +
+          geom_hline(yintercept = mean(df2$drinking,na.rm = TRUE),size = 1.5, linetype = "dashed") # this line shows us the grand mean
+```
+
+These data look like they are pretty similar. Lets proceed with the ANOVA test.
+
+### 2. Run the ANOVA
+
+```{r}
+model1 <- aov(drinking ~ group, data = df2)
+summary(model1)
+```
+
+BLAMO! Wait, its not significant :( I'm never gonna be published. we can conclude that there are no significantt differences between drinking between our different psych programs. We don't need to do anymore analysis as its not significant.
+
+### 3. Report your findings
+
+```{r}
+library(report)
+report(model1)
+```
+
+For a publication you would want to say something like:
+
+A one-way ANOVA was performed to determine the effect of the grad program on problematic drinking level. Results from the test reveal that, on average, no significant difference is present between at least two levels of treatment type, F(2, 432) = 1.17, p \< 0.312.
+
+### Fancy Visualization
+
+```{r}
+library(ggstatsplot)
+ggbetweenstats(
+  data = df2,
+  x = group,
+  y = drinking,
+  title = "Drinking levels by psychology grad program",
+  type = "parametric", # ANOVA or Kruskal-Wallis
+  var.equal = TRUE, # ANOVA or Welch ANOVA
+  #pairwise.comparisons = TRUE,
+  #pairwise.display = "significant",
+  centrality.plotting = FALSE,
+  bf.message = FALSE
+)
+```
+
+## Second research question
+
+Okay okay, So we know that there aren't differences in problematic drinking by grad program.
+
+Now I'm interested to see if there are differences in depression based upon grad program. Those clinical students must be sad listening to peoples problems all the time right?
+
+### 1. Look at the data
+
+```{r}
+# descriptive
+library(dplyr)
+df2 %>%
+  group_by(group) %>%
+  summarise(
+    count = n(),
+    mean = mean(depression, na.rm = TRUE),
+    sd = sd(depression, na.rm = TRUE))
+
+# vizualize
+library("ggpubr")
+ggboxplot(df2, x = "group", y = "depression", 
+          color = "group", palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+          ylab = "Depression", xlab = "Group",
+          add = c("jitter")) +
+          geom_hline(yintercept = mean(df2$depression,na.rm = TRUE),size = 1.5, linetype = "dashed") # this line shows us the grand mean
+```
+
+Hmm... not sure if my hypothesis is correct. Looks like maybe clinical people are lower?
+
+### 2. run and report test
+
+```{r}
+model2 <- aov(depression ~ group, data = df2)
+summary(model2)
+report(model2)
+```
+
+BLAMO! P value \< .05 so, I'm getting published! We can conclude that there is a significant difference between the three grad programs.
+
+### 3. Write up
+
+A one-way ANOVA was performed to determine the effect of the psych grad program on depressive symptom level. Results from the test reveal that, on average, a significant difference was present between at least two levels of treatment type, F(2, 438) = 8.81, p \< .001.
+
+### 4. Fancy Plots
+
+```{r}
+library(ggstatsplot)
+ggbetweenstats(
+  data = df2,
+  x = group,
+  y = depression,
+  title = "Depression levels by psychology grad program",
+  type = "parametric", # ANOVA or Kruskal-Wallis
+  var.equal = TRUE, # ANOVA or Welch ANOVA
+  #pairwise.comparisons = TRUE,
+  #pairwise.display = "significant",
+  centrality.plotting = FALSE,
+  bf.message = FALSE
+)
+```
