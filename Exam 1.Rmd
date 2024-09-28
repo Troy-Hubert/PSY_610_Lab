@@ -1,0 +1,191 @@
+---
+title: "Practice quiz"
+output: html_document
+date: "2024-09-21"
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+# Exam 1 - Data Analysis Questions
+
+These are the questions and answers for the first practice exam.
+
+# Exam 1 R Setup
+
+### Install packages
+
+```{r setup, include=FALSE}
+if(!require("haven")) install.packages("haven")
+if(!require('dplyr')) install.packages('dplyr')
+if(!require('tidyverse')) {install.packages("tidyverse")}
+if(!require('report')) {install.packages("report")}
+if(!require('rstatix')) {install.packages("rstatix")}
+if(!require('coin')) {install.packages("coin")}
+if(!require('RVAideMemoire')) {install.packages("RVAideMemoire")}
+```
+
+### Load Packages
+
+```{r}
+library('haven') # import SPSS files
+library('dplyr') #use this for data management
+library('tidyverse') # for data stuff
+library('report') # for fancy t test reporting
+library('rstatix') # for wilcoxan stuff
+library('ggpubr') # for plots
+library('coin')
+library('RVAideMemoire')
+```
+
+### Import data
+
+```{r}
+path <- file.choose()
+df <- read_sav(path)
+```
+
+### Prep data for anlyses
+
+```{r}
+
+df$hadcovid = as.factor(df$hadcovid)
+df$male = as.factor(df$male)
+df$appalachia = as.factor(df$appalachia)
+df$biomom = as.factor(df$biomom)
+df$biodad = as.factor(df$biodad)
+df$malegparent = as.factor(df$malegparent)
+df$livingsit = as.factor(df$livingsit)
+df$parentsit = as.factor(df$parentsit)
+```
+
+## Practice Exam Questions
+
+1.  Using the variable ‘support’ in the Exam 1 data set, please run a
+    **one-sample t-test using a test value of 4**. Pick the correct
+    result.
+
+    a.  t(309) = -10.092, p \< .001.
+    b.  t(411) = -0.871, p = .046
+    c.  t(309) = 3.129, p = .782. \<- correct answer
+    d.  t(123) = 8.628, p = .021.
+
+```{r}
+q1 <- t.test(df$support, mu = 4)
+q1
+report(q1)
+```
+
+2.  Run an independent samples t-test using the IV “hadcovid” and the DV
+    “time”. Choose the correct result from the test below.
+
+    a.  t(439) = -1.567, p = .118 \<- correct answerr
+    b.  t(232.760) = 5.692, p = .012
+    c.  t(123.450) = 2.001, p = .052
+    d.  t(440) = -1.635, p = .086
+
+```{r}
+var.test(empathy ~ hadcovid, data = df)
+#not sig = vars are equal 
+q2 <- t.test(empathy~ hadcovid, data = df, var.equal = TRUE)
+q2
+report(q2)
+```
+
+3.  Using the continuous DV ‘empathy’ and the categorical IV ‘hadcovid’
+    in the Exam 1 data set, please run an **independent sample t-test**.
+    Pick the correct result.
+
+    a.  t(440) = 25.325, p \< .001 \<- Correct answer
+    b.  t(440) = 6.622, p = .912
+    c.  t(167) = 0.561, p = .772
+    d.  t(167) = 2.635, p = .046
+
+```{r}
+t.test(df$momattach, df$dadattach, paired = TRUE)
+report(t.test(df$beforeanxiety, df$afteranxiety, paired = TRUE))
+```
+
+4.  Run a 3+ group Chi-Square test using the variable “group”. The
+    hypothesized distribution for this variable is 33/33/33 or ‘equal’.
+    Choose the correct result from the test below.
+
+    a\. Chi-square value = 0.054, sig = .973 \<- Correct
+
+    b\. Chi-square value = 1.504, sig = .773
+
+    c\. Chi-square value = 2.789, sig = .005
+
+    d\. Chi-square value = 0.632, sig \< .001
+
+```{r}
+table(df$social)
+group<-c(114,78,116)
+#run the chi square with the 57% female and 43% male expectation
+q4  <- chisq.test(group, p = c((1/3), (1/3), (1/3)))
+q4
+
+#use report to tell us what this means!
+report(q4)
+```
+
+5.  Run a Binomial Sign Test using the variable “covidsafety” and a test
+    value of 15. Choose the correct result from the test below.
+
+    a\. Test Statistic = 17.000, sig \< .001 \<- Correct
+
+    b\. Test Statistic = 2.464, sig = 0.563
+
+    c\. Test Statistic = 22.669, sig = 0.957
+
+    d\. Test Statistic = 0.032, sig = .049
+
+```{r}
+df$success<- ifelse(df$negative > 1.5,"above","below") 
+
+#table
+table(df$success)
+
+#length
+length <- length(df$success)
+names(length) = "n"
+sum(is.na(df$negative))
+
+#test
+binom.test(x = 169,n =310, p =.5)
+```
+
+6.  Run a Mood’s Median Test using the IV “hadcovid” and the DV
+    “covidsafety”. Choose the correct result from the test below.
+
+    a\. Significance = .002 \<- Correct
+
+    b\. Significance = .982
+
+    c\. Significance = .125
+
+    d\. Significance = .563
+
+```{r}
+median_test(df$grandattach ~ df$male)
+```
+
+7.  Run a Mann Whitney U Test using the IV “hadcovid” and the DV
+    “covidsafety”. Choose the correct result from the test below.
+
+    a\. Z = -3.83, sig \< .001 \<- Correct
+
+    b\. Z = -2.22, sig = .06
+
+    c\. Z = -1.2, sig = .46
+
+    d\. Z = -.5, sig = .72
+
+```{r}
+# run stats
+wilcox.test(df$positive ~ df$male)
+# z test
+z = as.numeric(statistic(wilcox_test(df$positive ~ df$male), type="standardized"))
+names(z) = "z"
+z
+```
