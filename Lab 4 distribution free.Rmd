@@ -2,95 +2,136 @@
 title: "Lab 4 Distribution Free tests"
 output: html_document
 date: "2024-09-13"
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
-## Resourcecs for todays lab
+# Lab 4 Distribution Free Tests
 
+## Information about lab
 
+Last week we covered t-tests. T tests examine differences in means based
+upon assumtions of their distribution. Today we will be covering tests
+that do make assumptions on distribution. These tests are also called
+non-parametric tests. These tests are often used with smaller sample
+sizes and rely on medians or ranks of data rather than means.
 
+We will be covering 4 tests today:
 
-## Distribution Free Tests
+Alternatives to single sample t tests
 
-Last week we covered t-tests. T tests examine differences in means based upon assumtions of their distribution. 
-Today we will be covering tests that do make assumptions on distribution. These tests are also called non-parametric tests.
-These tests are often used with smaller sample sizes and rely on medians or ranks of data rather than means. 
+1.  Binomial Sign Test
+2.  Chi square goodness of fit
 
-We will be covering 3 tests today:
-1. Wilcoxon signed rank - single group test (i.e., like the single sample t-test)
-2. Wilcoxon matched pairs - paired test (i.e., like the paired sample t-test)
-3. Mann-Whitney U - two sample (i.e., like the two sample t test)
+Alternative to two sample t tests
 
-### Set up
-Load packages
-```{r}
+3.  Moods median
+4.  Wilcoxon matched pairs - paired test (i.e., like the paired sample
+    t-test)
+
+## Set up
+
+### Packages
+
+install packages
+
+```{r, results= 'hide', message=FALSE, warning=FALSE}
 if(!require(tidyverse)) {install.packages("tidyverse")}
 if(!require(haven)) {install.packages("haven")}
 if(!require(rstatix)) {install.packages("rstatix")}
 if(!require(coin)) {install.packages("coin")}
-
-# install.packages('effectsize')
+if(!require(ggpubr)) {install.packages("ggpubr")}
+if(!require('RVAideMemoire')) {install.packages("RVAideMemoire")}
 ```
-```{r}
+
+load packages
+
+```{r, results= 'hide', message=FALSE, warning=FALSE}
 library(tidyverse) # data stuff
 library(dplyr) #data stuff
 library(haven) # for importing spss files
 library(rstatix) # for wilcoxan stuff
+library(report) # reportin gthings
 library(ggpubr) # for plots
 library(coin)
-# library(effectsize)
+library('RVAideMemoire')
 ```
 
-
 ### Import our data
+
 ```{r}
-# select the dataset from homework 1
-df <- read_sav(file.choose())
+path <- file.choose()
+df <- read_sav(path)
 ```
 
 ### Prep our data
+
 ```{r}
 df$male = as.factor(df$male)
 df$male <- recode(df$male, "1" = "Female", "2" = "Male")
 df$group = as.factor(df$group)
+<<<<<<< HEAD
 df <- filter(df, id < 30)
 df
+=======
+#df 2 is a sample of only 20 people, df is the sample with all of the people in it.
+df2 <- filter(df,id < 30)
+df2
+>>>>>>> 23f1a0cef14707516c456c92f96dcdfb6a107547
 ```
 
-### Single Sample Wilcoxon 
+## 1. Binomial Test - Nonparametic tests
 
-1. Descriptives for our question
+The binomial test assesses if there are equal number oof people above
+and below the mean. We are interested in seeing if equal number of
+people are above and below a depression score of 26, as this is the
+"mean" of the general population. We are using df2 as this is the
+dataframe with a smaller sample.
+
+1.  See how many people are in each group
+
 ```{r}
-# the %>% symbol is called a pipe operator and its "pipes" or moves data from one line to another.You'll see why we use this as we keep going. 
-df %>% 
-  get_summary_stats(depression, type = "median_iqr")
+# create a variable of scores above or below 26 and make a table
+df2$success<- ifelse(df2$depression > 25,"above","below") 
+#table
+table(df2$success)
+#length
+length <- length(df2$success)
+names(length) = "n"
+length
 ```
 
+You can see out of 2 people have a score of 25 or below with a total
+number of 20 people in the sample. We would suspect that there is a
+difference here.
 
+2.  Running the Binomial test
 
-2. Run the test
 ```{r}
-library(rstatix)
-#runs the tests 
-wilcox.test(df$depression ~ 1, mu = 25)
-#runs the effect size
-df %>% wilcox_effsize(depression ~ 1, mu = 25) # runs the effect size
-
-#median
-median(df$depression)
-
-#save these for the plot below
-w1_es <- df %>% wilcox_effsize(depression ~ 1, mu = 25)
-single_wilcox <- df %>% rstatix::wilcox_test(depression ~ 1, mu = 25)
+# template for this is binom.test(number of yeses, total amount)
+binom.test(x = 27,n =29, p =.5)
 ```
 
-3. Report it!
+Just like SPSS, Its significant! We reject the null hypothesis that we
+the groups are split 50/50.
 
-We could report the result as follow:
+3.  Writing it up - report doesn't work for this one, sorry! Based on a
+    one-sided binomial test the observed values (N= 20,K= 18) give
+    significant support to the assumption that more than 50% of the
+    sample is depressed, p= \<.001.
 
-A Wilcoxon signed-rank test was computed to assess whether the sample median depression was different to the population normal median depression (25). The measured student median depression (41) was statistically significantly lower than the population median depression of 25 (p < 0.001, effect size r = 0.84).
+## 2. Chi Square - single variable vs population
 
-4. Visualize it:
+### Two group Chi square - Single sample vs population
+
+Let’s also say that the gender makeup of college students is 57% female
+Does our sample have an equal gender breakdown as the larger population?
+
+1.  See how many people are in each group
+
 ```{r}
+<<<<<<< HEAD
 ggboxplot(
   df$depression, # variable 
   ylab = "Depression",  #label your y axis
@@ -104,53 +145,220 @@ ggboxplot(
     paste( #manually put in the info that you want!
       "Wilcoxon test,", "p =", round(single_wilcox$p,4),
       ", r =", round(w1_es$effsize,2)))
+=======
+table(df$male)
+>>>>>>> 23f1a0cef14707516c456c92f96dcdfb6a107547
 ```
 
-### Wilcoxon rank sum test 
+2.  Run and report the test
 
-1. Examine differences between the two groups
 ```{r}
-# these are called pipe operators it basically lets us pass information to the next line. 
-df %>%
+#take the output from the frequency table and assign it to a variable male
+male<-c(325, 116)
+#run the chi square with the 57% female and 43% male expectation
+chisq.test(male, p = c(.57, .43))
+chisq.test(c(325, 116), p = c(.57, .43))
+#use report to tell us what this means!
+report(chisq.test(male, p = c(.57, .43)))
+```
+
+3.  Report the test
+
+A chi-square test of given probabilities was performed to determine
+whether the distribution of gender different compared to the general
+population. The chi-square test suggests that there is a statistically
+significant difference between the distribution of gender in the sample
+relative to the general population *X*2(n = 20) = 64.71, p \< 0.001.
+
+### Three Group Chi Square - Single sample vs population
+
+We’re gonna use the variable ‘group’ Let’s say that group should be a
+variable where the distribution is 20/20/60.
+
+1.  Run the test for the 3 groups to see if there is a significant
+    difference.
+
+```{r}
+#get the frequencies
+table(df$group)
+#assign to group variable
+group<-c(28, 62, 351)
+#run the test
+chisq.test(group, p = c(.2, .2, .6))
+#report the test!
+report(chisq.test(group, p = c(.2, .2, .6)))
+```
+
+Now we know that there is a significant difference. We have to do
+separate tests to examine differences between each group.
+
+The proportions between the groups: Group 1 v. Group 2 (proportion
+50/50) Group 1 v. Group 3 (proportion 1:3, 25/75) Group 2 v. Group 3
+(proportion 1:3, 25/75)
+
+1.  Start with frequencies
+
+```{r}
+#We don't need to filter our variables, like SPSS we just make new Group variables
+table(df$group)
+```
+
+2.  Assign values to group variables,
+
+```{r}
+groups_1_2 <- c(28,62)
+groups_1_3 <- c(28,351)
+groups_2_3 <- c(62,531)
+```
+
+3.  Run the tests separately with proportions above (what we expect)
+    Between Groups 1 and 2
+
+```{r}
+chisq.test(groups_1_2, p = c(.5, .5))
+report(chisq.test(groups_1_2, p = c(.5, .5)))
+```
+
+4.  Between groups 1 and 3
+
+```{r}
+chisq.test(groups_1_3, p = c(.25, .75))
+report(chisq.test(groups_1_3, p = c(.25, .75)))
+```
+
+5.  Between groups 2 and 3
+
+```{r}
+chisq.test(groups_2_3, p = c(.25, .75))
+report(chisq.test(groups_2_3, p = c(.25, .75)))
+```
+
+We can see that there are significant differences in the proportions of
+students in groups compared to what we would expect in the population!
+
+## 3. Moods Median Test - two groups
+
+This test serves as a distribution free analog of the two sample t test
+
+1.  Examine differences between groups
+
+```{r}
+# "%>% these are called pipe operators it basically lets us pass information to the next line. 
+library(tidyverse)
+df2 %>%
   group_by(male) %>%
   get_summary_stats(depression, type = "median_iqr")
 ```
 
-2. Run the test
+They look the same! We would expect that there should be no difference,
+for the sake of the lab, lets still run the test.
+
+2.  Run the test
+
+```{r}
+median_test(df$depression ~ df$male)
+```
+
+3.  Report the findings:
+
+A moods median test was computed to assess whether depression differs by
+sex within a student sample. The median depression in female group was
+44 (IQR = 18.5), whereas the median in male group was 39 (IQR = 15.25).
+The moods median test showed that the difference was not significant (z
+= 1.16, p = 0.2)
+
+3.  Visualize the finding:
+
+```{r}
+#simple plot
+ggboxplot(df2,
+  y =  "depression", # outcome variable
+  x =  "male", # predictor variable
+  ylab = "Depression",  #label your y axis
+  xlab = "Gender", # label your x axis,
+  color = "male"
+)
+
+#fancy plot
+ggboxplot(df2,
+  y =  "depression", # outcome variable
+  x =  "male", # predictor variable
+  ylab = "Depression",  #label your y axis
+  xlab = "Gender", # label your x axis,
+  # color = "male",
+  #leave the rest below the same
+  width = .5, 
+  add = c("median", "jitter"), 
+  add.params = list(color= "male",alpha = .5)) + # the plus sign lets us add more things to our plot when using a ggplot
+  labs(
+    caption = # we are making a subtitle
+    paste( #manually put in the info that you want!
+      "Mood test,", "z =", round(mood_test$statistic,2), "p =", round(mood_test$p.value,4)))
+```
+
+## 4. Man Whitney U (aka Wilcox test) - two groups
+
+This test serves as a distribution free analog of the two sample t test.
+It uses ranks of participants in its analysis.
+
+1.  Examine differences between the two groups
+
+```{r}
+# "%>% these are called pipe operators it basically lets us pass information to the next line. 
+df2 %>%
+  group_by(male) %>%
+  get_summary_stats(depression, type = "median_iqr")
+```
+
+2.  Run the test
 
 ```{r}
 # run stats
-wilcox.test(df$depression ~ df$male)
+wilcox.test(df2$depression ~ df2$male)
 # effect size
-df %>% wilcox_effsize(depression ~ male) 
+df2 %>% wilcox_effsize(depression ~ male) 
 # z test
-z = as.numeric(statistic(wilcox_test(df$depression ~ df$male), type="standardized"))
+z = as.numeric(statistic(wilcox_test(df2$depression ~ df2$male), type="standardized"))
 names(z) = "z"
 z
 
 #save stats
-results2 <- df %>% 
+results2 <- df2 %>% 
   rstatix::wilcox_test(depression ~ male) %>%
   add_significance() %>%
   add_xy_position(x = "male")
-results2_es <- df %>% wilcox_effsize(depression ~ male) # runs the effect size
+results2_es <- df2 %>% wilcox_effsize(depression ~ male) # runs the effect size
 ```
 
-3. Report it!
+3.  Report it!
 
 We could report the result as follow:
 
-A Wilcoxon signed-rank test was computed to assess whether the sample median depression was different to the population normal median depression (25). The measured student median depression (41) was statistically significantly lower than the population median depression of 25 (p < 0.001, effect size r = 0.84).
+A Wilcoxon signed-rank test was computed to assess whether depression
+differs by sex within a student sample. The median depression in female
+group was 44 (IQR = 18.50), whereas the median in male group was 39.9
+(IQR = 15.25). The Wilcoxon test showed that the difference was not
+significant (z = -0.36, p = 0.73, effect size r = 0.06).
 
-A Wilcoxon signed-rank test was computed to assess whether depression differs by sex within a student sample. The median depression in female group was 62.9 (IQR = 2.33), whereas the median in male group was 86.3 (IQR = 4.59). The Wilcoxon test showed that the difference was significant (z = 3.64, p < 0.001, effect size r = 0.86).
+4.  Visualization
 
-4. Visualization
 ```{r}
-ggboxplot(df,
+#simple plot
+ggboxplot(df2,
   y =  "depression", # outcome variable
   x =  "male", # predictor variable
   ylab = "Depression",  #label your y axis
-  xlab = "Gender", # label your x axis
+  xlab = "Gender", # label your x axis,
+  color = "male"
+)
+
+#fancy plot
+ggboxplot(df2,
+  y =  "depression", # outcome variable
+  x =  "male", # predictor variable
+  ylab = "Depression",  #label your y axis
+  xlab = "Gender", # label your x axis,
+  # color = "male",
   #leave the rest below the same
   width = .5, 
   add = c("median", "jitter"), 
@@ -163,17 +371,20 @@ ggboxplot(df,
       ", r =", round(results2_es$effsize,2)))
 ```
 
-### Paired sample wilcox test
+## Paired sample wilcox test
 
-1. Summary statistics
+1.  Summary statistics
 
 lets look at the difference between pre and post scores of depression
+
 ```{r}
 df %>%
   get_summary_stats(c(depression, depression2), type = "median_iqr")
 ```
 
-1.1 we have to run this for some of the stats to work. I am happy to teach you if you want to learn more about it
+1.1 we have to run this for some of the stats to work. I am happy to
+teach you if you want to learn more about it
+
 ```{r}
 df_long <- df %>% 
   pivot_longer(
@@ -183,14 +394,17 @@ df_long <- df %>%
   mutate(
     Timepoint = as.factor(Timepoint),
     Timepoint = recode(
-      df_long$Timepoint,
+      Timepoint,
       "depression" = "pre",
+<<<<<<< HEAD
       "depression2" = "post")
     )
+=======
+      "depression2" = "post"))
+>>>>>>> 23f1a0cef14707516c456c92f96dcdfb6a107547
 ```
 
-
-2. Run the tests
+2.  Run the tests
 
 ```{r}
 # test
@@ -198,6 +412,7 @@ test3<- wilcox.test(df$depression, df$depression2, paired = TRUE)
 test3
 # effect size
 df_long %>% wilcox_effsize(Depression ~ Timepoint, paired = TRUE)
+<<<<<<< HEAD
 # z test
 z = qnorm(test3$p.value/2)
 names(z) = "z"
@@ -205,12 +420,19 @@ z
 
 #save results
 results3 <- df_long %>%
+=======
+
+# save test
+
+results3 <- df_long %>% 
+>>>>>>> 23f1a0cef14707516c456c92f96dcdfb6a107547
   rstatix::wilcox_test(Depression ~ Timepoint, paired = TRUE) %>%
   add_significance() %>%
   add_xy_position(x = "Timepoint")
 results3_es <- df_long %>% wilcox_effsize(Depression ~ Timepoint, paired = TRUE)
 ```
 
+<<<<<<< HEAD
 3. report it
 
 
@@ -244,67 +466,30 @@ bxp <- ggpaired(mice2.long, x = "group", y = "weight",
          order = c("before", "after"),
          ylab = "Weight", xlab = "Groups")
 
-```
+=======
+3.  Report the findings
 
+A paired sample Wilcoxon signed rank test was conducted to example
+differences pre and post depression treatmen. The median depression of
+the participants before treatment is significantly higher (M = 40) from
+the median depression score after treatment (M = 27) with a p-value \<
+0.001 and effect size of r = 0.87.
 
-
-
+4.  Visulization
 
 ```{r}
-n = 16
-
-N = n + n
-
-A = runif(n,1,10)
-B = A + 5 + rnorm(n,0,4)
-
-Group = factor(c(rep("A", length(A)), rep("B", length(B))))
-Y = c(A,B)
-
-boxplot(Y ~ Group)
-
-library(coin)
-
-MW = wilcox_test(Y ~ Group)
-MW
-
-Z = as.numeric(statistic(MW, type="standardized"))
-names(Z) = "Z"
-
-Z
-
-   ###         Z 
-   ### -4.258848 
-
-MWa = wilcox.test(Y ~ Group, exact=FALSE)
-
-MWa
-
-Za = qnorm(MWa$p.value/2)
-
-Za
-
-   ### [1] -4.240003
-
-r = abs(Z)/sqrt(N)
-names(r) = "r"
-
-r
-
-   ###        r 
-   ### 0.752865
-
-ra = abs(Za)/sqrt(N)
-names(ra) = "ra"
-
-ra
-
-   ###        ra 
-   ### 0.7495338
+ggpaired(df_long, x = "Timepoint", y = "Depression", 
+         order = c("pre", "post"),
+         ylab = "Depression", xlab = "Timepoint",
+        # extra stuff
+         point.size = 1.2,
+         line.color = "grey",
+         color = "blue") +
+         stat_pvalue_manual(results3, tip.length = 0) +
+         labs(
+          caption = # we are making a subtitle
+              paste( #manually put in the info that you want!
+      "Wilcoxon test,", "V =", results3$statistic, "p =", round(results3$p,4),
+      ", r =", round(results3_es$effsize,2)))
+>>>>>>> 23f1a0cef14707516c456c92f96dcdfb6a107547
 ```
-
-
-
-
-
-

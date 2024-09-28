@@ -7,11 +7,11 @@ editor_options:
     wrap: 72
 ---
 
-# Practice Quiz 1 - Data Analysis Questions
+# Exam 1 - Data Analysis Questions
 
 These are the questions and answers for the first practice exam.
 
-## Setup
+# Exam 1 R Setup
 
 ### Install packages
 
@@ -20,20 +20,12 @@ if(!require("haven")) install.packages("haven")
 if(!require('dplyr')) install.packages('dplyr')
 if(!require('tidyverse')) {install.packages("tidyverse")}
 if(!require('report')) {install.packages("report")}
-<<<<<<< HEAD
-if(!require(rstatix)) {install.packages("rstatix")}
-if(!require(coin)) {install.packages("coin")}
-
-```
-
-### Load Packages 
-=======
 if(!require('rstatix')) {install.packages("rstatix")}
 if(!require('coin')) {install.packages("coin")}
+if(!require('RVAideMemoire')) {install.packages("RVAideMemoire")}
 ```
 
 ### Load Packages
->>>>>>> 23f1a0cef14707516c456c92f96dcdfb6a107547
 
 ```{r}
 library('haven') # import SPSS files
@@ -43,63 +35,47 @@ library('report') # for fancy t test reporting
 library('rstatix') # for wilcoxan stuff
 library('ggpubr') # for plots
 library('coin')
+library('RVAideMemoire')
 ```
 
 ### Import data
 
 ```{r}
 path <- file.choose()
-<<<<<<< HEAD
-=======
-path
->>>>>>> 23f1a0cef14707516c456c92f96dcdfb6a107547
 df <- read_sav(path)
 ```
 
 ### Prep data for anlyses
 
 ```{r}
+
 df$hadcovid = as.factor(df$hadcovid)
-df$group = as.factor(df$group)
-df
+df$male = as.factor(df$male)
+df$appalachia = as.factor(df$appalachia)
+df$biomom = as.factor(df$biomom)
+df$biodad = as.factor(df$biodad)
+df$malegparent = as.factor(df$malegparent)
+df$livingsit = as.factor(df$livingsit)
+df$parentsit = as.factor(df$parentsit)
 ```
 
 ## Practice Exam Questions
 
-1.  Run a one-sample t-test using the DV “time” and a test value of 50.
-    Choose the correct result from the test below.
-<<<<<<< HEAD
-    1.  t(2389) = -2.600, p = .082
-    2.  t(120) = 18.872, p \< .001
-    3.  t(440) = -2.600, p = 0.010 \<- correct answer
-    4.  t(440) = 2.620, p = 0.869
-=======
+1.  Using the variable ‘support’ in the Exam 1 data set, please run a
+    **one-sample t-test using a test value of 4**. Pick the correct
+    result.
 
-    a.  t(2389) = -2.600, p = .082
-    b.  t(120) = 18.872, p \< .001
-    c.  t(440) = -2.600, p = 0.010 \<- correct answer
-    d.  t(440) = 2.620, p = 0.869
->>>>>>> 23f1a0cef14707516c456c92f96dcdfb6a107547
+    a.  t(309) = -10.092, p \< .001.
+    b.  t(411) = -0.871, p = .046
+    c.  t(309) = 3.129, p = .782. \<- correct answer
+    d.  t(123) = 8.628, p = .021.
 
 ```{r}
-q1 <- t.test(df$time, mu = 50)
+q1 <- t.test(df$support, mu = 4)
 q1
 report(q1)
 ```
 
-<<<<<<< HEAD
-2.  Run a dependent samples t-test using the DV “beforeanxiety” and the
-    DV “afteranxiety”. Choose the correct result from the test below.
-    Put in “beforeanxiety” first so the t value sign is correct.
-
-    a\. t(440) = 25.325, p \< .001 \<- Correct answer
-
-    b\. t(440) = 6.622, p = .912
-
-    c\. t(167) = 0.561, p = .772
-
-    d\. t(167) = 2.635, p = .046
-=======
 2.  Run an independent samples t-test using the IV “hadcovid” and the DV
     “time”. Choose the correct result from the test below.
 
@@ -109,45 +85,25 @@ report(q1)
     d.  t(440) = -1.635, p = .086
 
 ```{r}
-var.test(time ~ hadcovid, data = df)
+var.test(empathy ~ hadcovid, data = df)
 #not sig = vars are equal 
-q2 <- t.test(time ~ hadcovid, data = df, var.equal = TRUE)
+q2 <- t.test(empathy~ hadcovid, data = df, var.equal = TRUE)
 q2
 report(q2)
 ```
 
-3.  Run a dependent samples t-test using the DV “beforeanxiety” and the
-    DV “afteranxiety”. Choose the correct result from the test below.
-    Put in “beforeanxiety” first so the t value sign is correct.
+3.  Using the continuous DV ‘empathy’ and the categorical IV ‘hadcovid’
+    in the Exam 1 data set, please run an **independent sample t-test**.
+    Pick the correct result.
 
     a.  t(440) = 25.325, p \< .001 \<- Correct answer
     b.  t(440) = 6.622, p = .912
     c.  t(167) = 0.561, p = .772
     d.  t(167) = 2.635, p = .046
->>>>>>> 23f1a0cef14707516c456c92f96dcdfb6a107547
 
 ```{r}
-t.test(df$beforeanxiety, df$afteranxiety, paired = TRUE)
+t.test(df$momattach, df$dadattach, paired = TRUE)
 report(t.test(df$beforeanxiety, df$afteranxiety, paired = TRUE))
-<<<<<<< HEAD
-
-```
-
-3.  Run a 3+ group Chi-Square test using the variable “group”. The
-    hypothesized distribution for this variable is 33/33/33 or ‘equal’.
-    Choose the correct result from the test below.
-
-    m\. Chi-square value = 0.054, sig = .973 \<- Correct
-
-    n\. Chi-square value = 1.504, sig = .773
-
-    o\. Chi-square value = 2.789, sig = .005
-
-    p\. Chi-square value = 0.632, sig \< .001
-
-```{r}
-
-=======
 ```
 
 4.  Run a 3+ group Chi-Square test using the variable “group”. The
@@ -163,8 +119,8 @@ report(t.test(df$beforeanxiety, df$afteranxiety, paired = TRUE))
     d\. Chi-square value = 0.632, sig \< .001
 
 ```{r}
-table(df$group)
-group<-c(147,145,149)
+table(df$social)
+group<-c(114,78,116)
 #run the chi square with the 57% female and 43% male expectation
 q4  <- chisq.test(group, p = c((1/3), (1/3), (1/3)))
 q4
@@ -185,15 +141,18 @@ report(q4)
     d\. Test Statistic = 0.032, sig = .049
 
 ```{r}
-df$success<- ifelse(df$covidsafety > 15,"above","below") 
+df$success<- ifelse(df$negative > 1.5,"above","below") 
+
 #table
-table(df2$success)
+table(df$success)
+
 #length
-length <- length(df2$success)
+length <- length(df$success)
 names(length) = "n"
-length
+sum(is.na(df$negative))
+
 #test
-binom.test(x = 27,n =29, p =.5)
+binom.test(x = 169,n =310, p =.5)
 ```
 
 6.  Run a Mood’s Median Test using the IV “hadcovid” and the DV
@@ -208,7 +167,7 @@ binom.test(x = 27,n =29, p =.5)
     d\. Significance = .563
 
 ```{r}
-median_test(df$covidsafety ~ df$hadcovid)
+median_test(df$grandattach ~ df$male)
 ```
 
 7.  Run a Mann Whitney U Test using the IV “hadcovid” and the DV
@@ -224,10 +183,9 @@ median_test(df$covidsafety ~ df$hadcovid)
 
 ```{r}
 # run stats
-wilcox.test(df$covidsafety ~ df$hadcovid)
+wilcox.test(df$positive ~ df$male)
 # z test
-z = as.numeric(statistic(wilcox_test(df2$depression ~ df2$male), type="standardized"))
+z = as.numeric(statistic(wilcox_test(df$positive ~ df$male), type="standardized"))
 names(z) = "z"
 z
->>>>>>> 23f1a0cef14707516c456c92f96dcdfb6a107547
 ```

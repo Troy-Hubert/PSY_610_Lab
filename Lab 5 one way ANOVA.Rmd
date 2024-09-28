@@ -1,0 +1,247 @@
+---
+title: "Lab 5 one way ANOVA"
+output: html_document
+date: "2024-09-26"
+---
+
+# One Way ANOVA
+
+Today in lab we will be discussing how to conduct a 1 way anova. We will not be discussing assumptions or contrasts in this lab.
+
+resources for this lab:
+
+1.  [mega anova resource](https://statsandr.com/blog/anova-in-r/)
+
+## Setup
+
+Install packages
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = TRUE)
+if(!require(tidyverse)) {install.packages("tidyverse")}
+if(!require(haven)) {install.packages("haven")}
+if(!require(rstatix)) {install.packages("rstatix")}
+if(!require(ggpubr)) {install.packages("ggpubr")}
+if(!require(report)) {install.packages("report")}
+if(!require(ggstatsplot)) {install.packages("ggstatsplot")}
+if(!require(effectsize)) {install.packages("effectsize")}
+```
+
+Load packages
+
+```{r}
+library(tidyverse) # data stuff
+library(haven) # for importing spss files
+library(report) # reportin gthings
+library(ggpubr) # for plots
+library(ggstatsplot) # for fancy plots
+library(effectsize) # for fancy plots
+```
+
+Import and prep data
+
+```{r}
+#1. Import data
+path <- file.choose()
+df <- read_sav(path)
+df
+```
+
+```{r}
+# make your categorical variables factors
+df <- df %>%
+  mutate(
+    male = as.factor(male),
+    group = as.factor(group),
+    christ = as.factor(christ),
+    diagnosis = as.factor(diagnosis),
+    school = as.factor(school)
+  ) 
+df$male <- recode(df$male, "0" = "Female", "1" = "Male")
+df$group <- recode(df$group, "1" = "DSH", "2" = "Cog Neuro", "3" = "Clinical")
+
+df
+```
+
+## First research question:
+
+We are interested in seeing if the drinking scores differ by group of psychology grad students.
+
+### 1. Look at the data
+
+Before we run the ANOVA, lets just look at our data. Do we thtink there is a difference between these groups and the grand mean?
+
+```{r}
+# descriptive
+library(dplyr)
+df %>%
+  group_by(group) %>%
+  summarise(
+    count = n(),
+    mean = mean(drinking, na.rm = TRUE),
+    sd = sd(drinking, na.rm = TRUE))
+
+# vizualize
+library("ggpubr")
+ggboxplot(df, x = "group", y = "drinking", 
+          color = "group", palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+          ylab = "Drinking", xlab = "Group",
+          title = "Drinking by grad program",
+          add = c("jitter")) +
+          geom_hline(yintercept = mean(df$drinking,na.rm = TRUE),size = 1.5, linetype = "dashed") # this line shows us the grand mean
+```
+
+These data look like they are pretty similar. Lets proceed with the ANOVA test.
+
+### 2. Run the ANOVA
+
+```{r}
+model1 <- aov(drinking ~ group, data = df)
+summary(model1)
+```
+
+BLAMO! Wait, its not significant :( I'm never gonna be published. we can conclude that there are no significant differences between drinking between our different psych programs. We don't need to do anymore analysis as its not significant.
+
+### 3. Report your findings
+
+```{r}
+library(report)
+report(model1)
+```
+
+For a publication you would want to say something like:
+
+A one-way ANOVA was performed to determine the effect of the grad program on problematic drinking level. Results from the test reveal that, on average, no significant difference is present between at least two levels of treatment type, F(2, 432) = 1.17, p \< 0.312.
+
+### Fancy Visualization
+
+```{r}
+library(ggstatsplot)
+ggbetweenstats(
+  data = df,
+  x = group,
+  y = drinking,
+  title = "Drinking levels by psychology grad program",
+  type = "parametric", # ANOVA or Kruskal-Wallis
+  var.equal = TRUE, # ANOVA or Welch ANOVA
+  #pairwise.comparisons = TRUE,
+  #pairwise.display = "significant",
+  centrality.plotting = FALSE,
+  bf.message = FALSE
+)
+```
+
+## Second research question
+
+Okay okay, So we know that there aren't differences in problematic drinking by grad program.
+
+Now I'm interested to see if there are differences in depression based upon grad program. Those clinical students must be sad listening to peoples problems all the time right?
+
+### 1. Look at the data
+
+```{r}
+# descriptive
+library(dplyr)
+df %>%
+  group_by(group) %>%
+  summarise(
+    count = n(),
+    mean = mean(depression, na.rm = TRUE),
+    sd = sd(depression, na.rm = TRUE))
+
+# vizualize
+library("ggpubr")
+ggboxplot(df, x = "group", y = "depression", 
+          color = "group", palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+          ylab = "Depression", xlab = "Group",
+          add = c("jitter")) +
+          geom_hline(yintercept = mean(df$depression,na.rm = TRUE),size = 1.5, linetype = "dashed") # this line shows us the grand mean
+```
+
+Hmm... not sure if my hypothesis is correct. Looks like maybe clinical people are lower?
+
+### 2. run and report test
+
+```{r}
+model2 <- aov(depression ~ group, data = df)
+summary(model2)
+report(model2)
+```
+
+BLAMO! P value \< .05 so, I'm getting published! We can conclude that there is a significant difference between the three grad programs.
+
+### 3. Write up
+
+A one-way ANOVA was performed to determine the effect of the psych grad program on depressive symptom level. Results from the test reveal that, on average, a significant difference was present between at least two levels of treatment type, F(2, 438) = 8.81, p \< .001.
+
+### 4. Fancy Plots
+
+```{r}
+library(ggstatsplot)
+ggbetweenstats(
+  data = df,
+  x = group,
+  y = depression,
+  title = "Depression levels by psychology grad program",
+  type = "parametric", # ANOVA or Kruskal-Wallis
+  var.equal = TRUE, # ANOVA or Welch ANOVA
+  #pairwise.comparisons = TRUE,
+  #pairwise.display = "significant",
+  centrality.plotting = FALSE,
+  bf.message = FALSE
+)
+```
+
+## Effect sizes and Confidence Intervals
+
+### t- tests - cohens D
+
+We already discussed cohens d during the t test lab. The point of effect sizes is to tell us how much differences are in the data. Said otherwise, how spread apart are our groups, or how far apart is my group from the test value? Unlike p values, effect sizes actually tell us how "significant" our data is. remember, p values only tell us how likely we would be to observe our data if the null is true.
+
+These are the conventions for cohens d effect size:
+
+| Effect Size | Convention | \% Overlap between groups |
+|:-----------:|:----------:|:-------------------------:|
+|    Small    |    0.2     |            85%            |
+|   Medium    |    0.5     |            67%            |
+|    Large    |    0.8     |            53%            |
+
+We did this in our t test lab, but reviewing them here again:
+
+```{r}
+#1. single sample t test
+t.test(df$time, mu = 40)
+cohens_d(x = df$time, mu = 40)
+
+#2. Independent t test / 2 group t test
+t.test(time ~ male, data = df, var.equal = TRUE)
+cohens_d(time ~ male, data = df)
+```
+
+You can see from the cohens_d() function it gives us the value, and the 95% CI. From the results above, we can see the single sample t test has a LARGE effect size, and the independent t test has an insignificant effect.
+
+For the ALL confidence interval, you want to make sure that it does not overlap with 0. For effect sizes, if it overlaps with 0, that means that we could observe a null finding.
+
+### ANOVA effect sizes - Cohens F\^2
+
+The output of the ANOVA usually gives us the eta^2^ We are interested in calculating cohens f^2^, which is a similar statistic to cohen's d, but for ANOVA. Here is a table showing you the effect size based upon f^2^ and eta^2^ values.
+
+| Effect Size | f^2^ value | eta^2^ |
+|:-----------:|:----------:|:------:|
+|    Small    |    0.1     |  0.01  |
+|   Medium    |    0.25    |  0.06  |
+|    Large    |    0.4     |  0.14  |
+
+Lets Run the ANOVAs from above, and see what these effect sizes are.
+
+```{r}
+#1. Run ANOVA
+model3 <- aov(time ~ group, data = df)
+summary(model3)
+
+#2. Report effect size
+cohens_f(model3,alternative = "two.sided")
+
+```
+
+You can see that the ANOVA is significant (p \< .05) and has a small effect size.
