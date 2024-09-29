@@ -69,7 +69,7 @@ We are interested in seeing if the drinking scores differ by group of psychology
 
 ### 1. Look at the data
 
-Before we run the ANOVA, lets just look at our data. Do we thtink there is a difference between these groups and the grand mean?
+Before we run the ANOVA, lets just look at our data. Do we think there is a difference between these groups and the grand mean?
 
 ```{r}
 # descriptive
@@ -100,7 +100,7 @@ model1 <- aov(drinking ~ group, data = df)
 summary(model1)
 ```
 
-BLAMO! Wait, its not significant :( I'm never gonna be published. we can conclude that there are no significant differences between drinking between our different psych programs. We don't need to do anymore analysis as its not significant.
+BLAMO! Wait, its not significant :( I'm never gonna be published. We can conclude that there are no significant differences between drinking between our different psych programs. We don't need to do anymore analysis as its not significant.
 
 ### 3. Report your findings
 
@@ -124,8 +124,8 @@ ggbetweenstats(
   title = "Drinking levels by psychology grad program",
   type = "parametric", # ANOVA or Kruskal-Wallis
   var.equal = TRUE, # ANOVA or Welch ANOVA
-  #pairwise.comparisons = TRUE,
-  #pairwise.display = "significant",
+  pairwise.comparisons = TRUE,
+  pairwise.display = "significant",
   centrality.plotting = FALSE,
   bf.message = FALSE
 )
@@ -172,7 +172,7 @@ BLAMO! P value \< .05 so, I'm getting published! We can conclude that there is a
 
 ### 3. Write up
 
-A one-way ANOVA was performed to determine the effect of the psych grad program on depressive symptom level. Results from the test reveal that, on average, a significant difference was present between at least two levels of treatment type, F(2, 438) = 8.81, p \< .001.
+A one-way ANOVA was performed to determine the effect of the psych grad program on depressive symptom level. Results from the test reveal that, on average, a significant difference was present between at least two levels of grad program, F(2, 438) = 8.81, p \< .001.
 
 ### 4. Fancy Plots
 
@@ -194,7 +194,7 @@ ggbetweenstats(
 
 ## Effect sizes and Confidence Intervals
 
-### t- tests - cohens D
+### t - tests - cohens D
 
 We already discussed cohens d during the t test lab. The point of effect sizes is to tell us how much differences are in the data. Said otherwise, how spread apart are our groups, or how far apart is my group from the test value? Unlike p values, effect sizes actually tell us how "significant" our data is. remember, p values only tell us how likely we would be to observe our data if the null is true.
 
@@ -224,13 +224,13 @@ For the ALL confidence interval, you want to make sure that it does not overlap 
 
 ### ANOVA effect sizes - Cohens F\^2
 
-The output of the ANOVA usually gives us the eta^2^ We are interested in calculating cohens f^2^, which is a similar statistic to cohen's d, but for ANOVA. Here is a table showing you the effect size based upon f^2^ and eta^2^ values.
+The output of the ANOVA usually gives us the eta^2^ We are interested in calculating cohens f, which is a similar statistic to cohen's d, but for ANOVA. Here is a table showing you the effect size based upon f and eta^2^ values.
 
-| Effect Size | f^2^ value | eta^2^ |
-|:-----------:|:----------:|:------:|
-|    Small    |    0.1     |  0.01  |
-|   Medium    |    0.25    |  0.06  |
-|    Large    |    0.4     |  0.14  |
+| Effect Size | f value | eta^2^ |
+|:-----------:|:-------:|:------:|
+|    Small    |   0.1   |  0.01  |
+|   Medium    |  0.25   |  0.06  |
+|    Large    |   0.4   |  0.14  |
 
 Lets Run the ANOVAs from above, and see what these effect sizes are.
 
